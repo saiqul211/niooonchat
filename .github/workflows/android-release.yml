@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Java JDK 21
@@ -23,21 +23,7 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Web Assets
-        run: npm run build
-
-      - name: Sync Capacitor Android
-        run: npx cap sync android
-
-      - name: Build Android APK (Debug)
+      - name: Build Android APK (Live URL Wrapper)
         working-directory: android
         run: |
           chmod +x gradlew
@@ -58,9 +44,9 @@ jobs:
           body: |
             ## Niooon Chat Android Release v1.0.${{ github.run_number }}
             - Native Capacitor Android Container
-            - Live URL: https://niooonchat.vercel.app
+            - Live Remote URL: https://niooonchat.vercel.app
             - Supabase Realtime & Strict Dark Mode UI
-            - Haptics, Hardware Back Navigation, Push Notifications & Offline Mode
+            - Native Status Bar, Splash Screen, Haptics, Hardware Back Navigation, Push Notifications & Offline Mode
           files: android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
