@@ -23,6 +23,14 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
+      - name: Setup Node.js 22 (For Capacitor Android Plugin Dependencies)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Plugin Dependencies
+        run: npm install
+
       - name: Build Android APK (Live URL Wrapper)
         working-directory: android
         run: |
