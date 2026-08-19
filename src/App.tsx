@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Search, User, LogIn } from 'lucide-react';
+import { Home, Search, User, LogIn, WifiOff, RefreshCw } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { AppRoute } from './types';
 import { HomeScreen } from './components/HomeScreen';
@@ -8,11 +8,59 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { SignupScreen } from './components/SignupScreen';
 import { ChatScreen } from './components/ChatScreen';
+import { initNativeFeatures, registerBackHandler, triggerHaptic, getNetworkStatus } from './lib/native';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<AppRoute>('home');
   const [chatTargetUser, setChatTargetUser] = useState<string>('');
   const [sessionUser, setSessionUser] = useState<any>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [isCheckingOnline, setIsCheckingOnline] = useState<boolean>(false);
+  const [exitToast, setExitToast] = useState<boolean>(false);
+
+  // Initialize Native Features (Capacitor Status Bar, Splash Screen, Push Notifications)
+  useEffect(() => {
+    initNativeFeatures();
+
+    // Check Network initial status
+    getNetworkStatus().then(status => setIsOnline(status));
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Hardware Back Button listener
+  useEffect(() => {
+    let lastBackPressTime = 0;
+
+    const cleanupBack = registerBackHandler(() => {
+      if (currentRoute !== 'home') {
+        navigateTo('home');
+        return true;
+      } else {
+        const currentTime = new Date().getTime();
+        if (currentTime - lastBackPressTime < 2000) {
+          return false; // Exit app
+        } else {
+          lastBackPressTime = currentTime;
+          setExitToast(true);
+          setTimeout(() => setExitToast(false), 2000);
+          triggerHaptic('light');
+          return true;
+        }
+      }
+    });
+
+    return cleanupBack;
+  }, [currentRoute]);
 
   // Sync route with URL Hash for granular deep-linking
   useEffect(() => {
@@ -62,6 +110,7 @@ export default function App() {
   }, []);
 
   const navigateTo = (route: string) => {
+    triggerHaptic('selection');
     window.location.hash = route;
     if (route.includes('?')) {
       const [path, qs] = route.split('?');
@@ -74,16 +123,47 @@ export default function App() {
     }
   };
 
+  const handleRetryConnection = async () => {
+    setIsCheckingOnline(true);
+    triggerHaptic('medium');
+    const online = await getNetworkStatus();
+    setIsOnline(online);
+    setIsCheckingOnline(false);
+  };
+
   const isChatRoom = currentRoute === 'chat';
+
+  // Offline Screen View
+  if (!isOnline) {
+    return (
+      <div className="h-screen w-full bg-black flex flex-col justify-center items-center p-6 text-center animate-fadeIn safe-top safe-bottom">
+        <div className="w-16 h-16 rounded-3xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-400">
+          <WifiOff className="w-8 h-8" />
+        </div>
+        <h2 className="text-lg font-bold text-neutral-100 mb-1.5">ইন্টারনেট সংযোগ নেই</h2>
+        <p className="text-xs text-neutral-400 max-w-xs mb-6">
+          অনুগ্রহ করে আপনার মোবাইল ডাটা অথবা ওয়াই-ফাই কানেকশন চেক করে পুনরায় চেষ্টা করুন।
+        </p>
+        <button
+          onClick={handleRetryConnection}
+          disabled={isCheckingOnline}
+          className="py-3 px-6 bg-neutral-100 hover:bg-white text-black font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 ${isCheckingOnline ? 'animate-spin' : ''}`} />
+          <span>পুনরায় চেষ্টা করুন</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-full bg-neutral-950 flex justify-center items-center overflow-hidden font-sans text-neutral-100 selection:bg-neutral-800">
-      {/* Strict Native Smartphone Shell (Max 430px, Fixed Height) */}
+      {/* Strict Native Smartphone Shell */}
       <div className="w-full max-w-[430px] h-full max-h-screen bg-black shadow-2xl shadow-black relative flex flex-col border-x border-neutral-900 overflow-hidden">
         
-        {/* Pinned Top Header Block (Hidden when in full active chat screen) */}
+        {/* Pinned Top Header Block */}
         {!isChatRoom && (
-          <header className="shrink-0 h-14 bg-black/90 backdrop-blur-md border-b border-neutral-800/80 flex items-center justify-between px-4 z-30">
+          <header className="shrink-0 h-14 bg-black/95 backdrop-blur-md border-b border-neutral-800/80 flex items-center justify-between px-4 z-30 safe-top">
             {/* Typography Logo / Link to Home */}
             <button
               onClick={() => navigateTo('home')}
@@ -154,9 +234,16 @@ export default function App() {
           )}
         </main>
 
-        {/* Pinned Bottom Navigation Bar (Hidden in Chat Room for maximum keyboard/typing area) */}
+        {/* Hardware Back Exit Toast */}
+        {exitToast && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-neutral-800/90 backdrop-blur-md border border-neutral-700 text-neutral-200 text-xs px-3.5 py-1.5 rounded-full shadow-lg z-50 animate-fadeIn">
+            অ্যাপ থেকে বের হতে আবার ব্যাক চাপুন
+          </div>
+        )}
+
+        {/* Pinned Bottom Navigation Bar */}
         {!isChatRoom && (
-          <nav className="shrink-0 z-30 w-full bg-black/95 backdrop-blur-xl border-t border-neutral-800 flex items-center justify-around px-2 pt-2.5 pb-5">
+          <nav className="shrink-0 z-30 w-full bg-black/95 backdrop-blur-xl border-t border-neutral-800 flex items-center justify-around px-2 pt-2 pb-4 safe-bottom">
             <button
               onClick={() => navigateTo('home')}
               className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
