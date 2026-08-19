@@ -34,15 +34,14 @@ jobs:
       - name: Build Web Assets
         run: npm run build
 
-      - name: Make Gradle Wrapper Executable
-        run: chmod +x android/gradlew || true
-
-      - name: Sync Capacitor Android
-        run: npx cap sync android
+      - name: Copy Web Assets into Android
+        run: npx cap copy android
 
       - name: Build Android APK (Debug)
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
