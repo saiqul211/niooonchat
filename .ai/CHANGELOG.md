@@ -2,6 +2,11 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.5.0] - 2026-08-23
+### Changed
+- Streamlined GitHub Actions Android release workflow (`android-release.yml`) by removing Node.js 22 setup, `npm install`, and `npx cap sync` steps.
+- The Android pipeline now builds the live remote URL APK wrapper directly using Java JDK 21 and Gradle 8.14.3.
+
 ## [1.4.1] - 2026-08-23
 ### Fixed
 - Fixed Android status bar clock and battery indicator overlap by configuring automatic `max(env(safe-area-inset-*), 36px/16px)` fallback offsets in CSS.

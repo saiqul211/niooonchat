@@ -1,19 +1,20 @@
 # CURRENT TASK STATE
 
-- **Task Name:** Android Safe Area & Status Bar Edge-to-Edge Collision Fix
-- **Current Feature:** Android Native Inset Fallbacks & Window System Bar Fitting
+- **Task Name:** Pure URL-Based Native Android Build Pipeline Optimization
+- **Current Feature:** Removal of Node.js CI Steps & Direct Live URL Pipeline
 - **Status:** Completed
 
 ## Files Modified & Maintained
-- `/src/index.css` (Upgraded `.safe-top`, `.safe-bottom`, `.safe-area-header`, and `.safe-area-footer` to enforce a reliable `max(env(safe-area-inset-*), 36px/16px)` fallback for all Android status bar configurations)
-- `/android/app/src/main/res/values/styles.xml` (Enabled `android:fitsSystemWindows="true"` and `android:windowDrawsSystemBarBackgrounds="true"` to prevent WebView content from underlapping the system status bar)
+- `/.github/workflows/android-release.yml` (Removed Node.js 22 setup, npm install, and web sync steps; streamlined pure Gradle/Java pipeline)
+- `/capacitor.config.ts` (Configured direct server live remote URL)
 - `/.ai/CURRENT_TASK.md`
 - `/.ai/CHANGELOG.md`
 
 ## Completed Steps
-- [x] Analyzed user screenshot showing status bar clock (3:57) and battery/network icons colliding directly with the `#login` header and "Back to Welcome" button.
-- [x] Upgraded global safe area utilities in `index.css` to use robust minimum offsets (`36px` top, `16px` bottom).
-- [x] Configured native Android `styles.xml` to properly handle system bar window fitting and backgrounds.
-- [x] Verified zero TypeScript or linting errors and verified production build compilation.
-- [x] Synced all changes to GitHub repository `saiqul211/niooonchat`.
+- [x] Analyzed requirements: Android application runs directly through the live web application URL.
+- [x] Removed `Setup Node.js 22`, `npm install`, and `npx cap sync android` from `.github/workflows/android-release.yml`.
+- [x] Streamlined workflow to directly build Android APK using standalone Gradle and Java JDK 21.
+- [x] Verified zero TypeScript/lint errors and verified app compilation.
+- [x] Synced all changes directly to GitHub repository `saiqul211/niooonchat`.
+
 
