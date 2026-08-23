@@ -1,0 +1,6 @@
+{
+  "name": "Niooon Chat",
+  "description": "Mobile-first responsive web application layout shell.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
