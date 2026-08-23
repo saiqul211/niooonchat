@@ -84,8 +84,8 @@ export default function App() {
       if (['welcome', 'home', 'search', 'profile', 'login', 'signup', 'chat'].includes(cleanRoute)) {
         setCurrentRoute(cleanRoute as AppRoute);
       } else {
-        // Default initial screen
-        setCurrentRoute('welcome');
+        // Default initial screen for new or unauthenticated users
+        setCurrentRoute(sessionUser ? 'home' : 'welcome');
       }
     };
 
@@ -97,16 +97,33 @@ export default function App() {
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [sessionUser]);
 
   // Listen to Supabase Auth State changes
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSessionUser(session?.user || null);
+      const user = session?.user || null;
+      setSessionUser(user);
+      // If user is already logged in and currently on welcome/login/signup, redirect to home
+      const currentHash = window.location.hash.replace('#', '').split('?')[0].toLowerCase();
+      if (user && (currentHash === 'welcome' || currentHash === 'login' || currentHash === 'signup' || !currentHash)) {
+        navigateTo('home');
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSessionUser(session?.user || null);
+      const user = session?.user || null;
+      setSessionUser(user);
+      if (user) {
+        // Auto navigate to home if in auth screens
+        setCurrentRoute((prev) => {
+          if (prev === 'welcome' || prev === 'login' || prev === 'signup') {
+            window.location.hash = 'home';
+            return 'home';
+          }
+          return prev;
+        });
+      }
     });
 
     return () => {
@@ -136,7 +153,10 @@ export default function App() {
     setIsCheckingOnline(false);
   };
 
+  const isAuthScreen = currentRoute === 'welcome' || currentRoute === 'login' || currentRoute === 'signup';
   const isChatRoom = currentRoute === 'chat';
+  const showAppHeader = !isAuthScreen && !isChatRoom;
+  const showBottomNav = !isAuthScreen && !isChatRoom;
 
   // Offline Screen View
   if (!isOnline) {
@@ -166,69 +186,37 @@ export default function App() {
       {/* Strict Native Smartphone Shell */}
       <div className="w-full max-w-[430px] h-full max-h-screen bg-black shadow-2xl shadow-black relative flex flex-col border-x border-neutral-900 overflow-hidden">
         
-        {/* Pinned Top Header Block */}
-        {!isChatRoom && (
+        {/* Pinned Top Header Block (Only in main logged-in app screens) */}
+        {showAppHeader && (
           <header className="shrink-0 h-14 bg-black/95 backdrop-blur-md border-b border-neutral-800/80 flex items-center justify-between px-4 z-30 safe-top">
-            {/* Typography Logo / Link to Welcome or Home */}
-            <button
-              onClick={() => navigateTo(sessionUser ? 'home' : 'welcome')}
-              className="text-left group cursor-pointer focus:outline-none flex items-center gap-2"
-            >
+            <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
-                <Sparkles className="w-3.5 h-3.5 text-neutral-300 group-hover:text-white transition-colors" />
+                <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
               </div>
               <div>
-                <h1 className="text-sm font-bold tracking-tight text-neutral-100 group-hover:text-white transition-colors leading-tight">
+                <h1 className="text-sm font-bold tracking-tight text-neutral-100 leading-tight">
                   Niooon Chat
                 </h1>
                 <span className="text-[9px] text-neutral-500 block font-mono">
                   #{currentRoute}
                 </span>
               </div>
-            </button>
-            
-            {/* Utility Slot: Auth Status or Quick Login Link */}
-            <div className="flex items-center gap-1.5">
-              {sessionUser ? (
-                <button
-                  onClick={() => navigateTo('profile')}
-                  className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200 hover:border-neutral-500 transition-colors cursor-pointer"
-                  title="প্রোফাইল দেখুন"
-                >
-                  {sessionUser.user_metadata?.full_name?.[0]?.toUpperCase() || 'U'}
-                </button>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => navigateTo('login')}
-                    className={`py-1 px-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 cursor-pointer ${
-                      currentRoute === 'login'
-                        ? 'bg-neutral-800 text-white'
-                        : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800'
-                    }`}
-                  >
-                    <LogIn className="w-3 h-3" />
-                    <span>লগইন</span>
-                  </button>
-                  <button
-                    onClick={() => navigateTo('signup')}
-                    className={`py-1 px-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1 cursor-pointer ${
-                      currentRoute === 'signup'
-                        ? 'bg-neutral-100 text-black font-semibold'
-                        : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-neutral-800'
-                    }`}
-                  >
-                    <UserPlus className="w-3 h-3" />
-                    <span>সাইন আপ</span>
-                  </button>
-                </div>
-              )}
             </div>
+            
+            {sessionUser && (
+              <button
+                onClick={() => navigateTo('profile')}
+                className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200 hover:border-neutral-500 transition-colors cursor-pointer"
+                title="প্রোফাইল দেখুন"
+              >
+                {sessionUser.user_metadata?.full_name?.[0]?.toUpperCase() || 'U'}
+              </button>
+            )}
           </header>
         )}
 
         {/* Scrollable Core View Container */}
-        <main className={`flex-1 bg-[#0a0a0a] overflow-y-auto overflow-x-hidden flex flex-col ${isChatRoom ? 'p-0' : 'p-3.5'}`}>
+        <main className={`flex-1 bg-[#0a0a0a] overflow-y-auto overflow-x-hidden flex flex-col ${isAuthScreen || isChatRoom ? 'p-0' : 'p-3.5'}`}>
           {currentRoute === 'welcome' && (
             <WelcomeScreen
               onNavigate={navigateTo}
@@ -270,46 +258,36 @@ export default function App() {
           </div>
         )}
 
-        {/* Pinned Bottom Navigation Bar */}
-        {!isChatRoom && (
-          <nav className="shrink-0 z-30 w-full bg-black/95 backdrop-blur-xl border-t border-neutral-800 flex items-center justify-around px-2 pt-2 pb-4 safe-bottom">
-            <button
-              onClick={() => navigateTo('welcome')}
-              className={`flex flex-col items-center justify-center w-14 gap-1 transition-colors cursor-pointer ${
-                currentRoute === 'welcome' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
-              }`}
-            >
-              <Sparkles className="w-4.5 h-4.5" strokeWidth={currentRoute === 'welcome' ? 2.5 : 1.8} />
-              <span className="text-[10px] tracking-wide">Welcome</span>
-            </button>
-
+        {/* Pinned Bottom Navigation Bar (Only in main logged-in app screens) */}
+        {showBottomNav && (
+          <nav className="shrink-0 z-30 w-full bg-black/95 backdrop-blur-xl border-t border-neutral-800 flex items-center justify-around px-4 pt-2 pb-4 safe-bottom">
             <button
               onClick={() => navigateTo('home')}
-              className={`flex flex-col items-center justify-center w-14 gap-1 transition-colors cursor-pointer ${
+              className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
                 currentRoute === 'home' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
               }`}
             >
-              <Home className="w-4.5 h-4.5" strokeWidth={currentRoute === 'home' ? 2.5 : 1.8} />
+              <Home className="w-5 h-5" strokeWidth={currentRoute === 'home' ? 2.5 : 1.8} />
               <span className="text-[10px] tracking-wide">Home</span>
             </button>
             
             <button
               onClick={() => navigateTo('search')}
-              className={`flex flex-col items-center justify-center w-14 gap-1 transition-colors cursor-pointer ${
+              className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
                 currentRoute === 'search' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
               }`}
             >
-              <Search className="w-4.5 h-4.5" strokeWidth={currentRoute === 'search' ? 2.5 : 1.8} />
+              <Search className="w-5 h-5" strokeWidth={currentRoute === 'search' ? 2.5 : 1.8} />
               <span className="text-[10px] tracking-wide">Search</span>
             </button>
 
             <button
               onClick={() => navigateTo('profile')}
-              className={`flex flex-col items-center justify-center w-14 gap-1 transition-colors cursor-pointer ${
+              className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
                 currentRoute === 'profile' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
               }`}
             >
-              <User className="w-4.5 h-4.5" strokeWidth={currentRoute === 'profile' ? 2.5 : 1.8} />
+              <User className="w-5 h-5" strokeWidth={currentRoute === 'profile' ? 2.5 : 1.8} />
               <span className="text-[10px] tracking-wide">Profile</span>
             </button>
           </nav>
