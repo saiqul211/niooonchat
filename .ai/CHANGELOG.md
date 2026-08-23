@@ -2,6 +2,12 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.5.2] - 2026-08-23
+### Fixed
+- Fixed GitHub Actions Android release workflow by adopting official `gradle/actions/setup-gradle@v4` action with Gradle 8.14.3.
+- Added executable permissions `chmod +x gradlew` and ran `./gradlew assembleDebug --no-daemon --stacktrace` directly from the android directory.
+- Hardened dependency installation with `npm ci || npm install --legacy-peer-deps`.
+
 ## [1.5.1] - 2026-08-23
 ### Fixed
 - Fixed GitHub Actions Android release workflow by restoring `npm install --no-audit --no-fund` step. This ensures Gradle can locate Capacitor's native bridge and plugin libraries in `node_modules/@capacitor/*`.

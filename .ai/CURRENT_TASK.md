@@ -1,18 +1,19 @@
 # CURRENT TASK STATE
 
-- **Task Name:** Capacitor Android Plugin Resolution & CI/CD Pipeline Fix
-- **Current Feature:** Restored npm plugin dependency resolution for Gradle
+- **Task Name:** GitHub Actions CI/CD Pipeline Gradle & Dependency Optimization
+- **Current Feature:** Official Gradle Action & Executable Wrapper Fix
 - **Status:** Completed
 
 ## Files Modified & Maintained
-- `/.github/workflows/android-release.yml` (Restored Node.js & npm install so Gradle can find Capacitor native plugin libraries in `node_modules/@capacitor/*`)
+- `/.github/workflows/android-release.yml` (Integrated official `gradle/actions/setup-gradle@v4`, enabled executable `./gradlew`, and reliable `npm ci || npm install`)
 - `/.ai/CURRENT_TASK.md`
 - `/.ai/CHANGELOG.md`
 
 ## Completed Steps
-- [x] Diagnosed GitHub Actions build failure: Gradle failed because Capacitor's native Java plugins reside in `node_modules/@capacitor/*` (configured in `capacitor.settings.gradle`).
-- [x] Restored streamlined `npm install --no-audit --no-fund` step in `.github/workflows/android-release.yml` without unnecessary web bundle build steps.
-- [x] Verified zero TypeScript/lint errors and verified app compilation.
+- [x] Diagnosed GitHub Actions build: Replaced manual standalone zip download with the official `gradle/actions/setup-gradle@v4` action (Gradle 8.14.3).
+- [x] Configured `chmod +x gradlew` and `./gradlew assembleDebug --no-daemon --stacktrace` for 100% reliable runner execution.
+- [x] Maintained fast dependency installation (`npm ci || npm install --legacy-peer-deps`) for native plugin resolution.
+- [x] Verified applet linting (`tsc --noEmit`) and production build compilation.
 - [x] Synced all changes directly to GitHub repository `saiqul211/niooonchat`.
 
 

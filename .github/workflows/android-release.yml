@@ -29,17 +29,18 @@ jobs:
           node-version: 22
 
       - name: Install Dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci || npm install --legacy-peer-deps
 
-      - name: Download Standalone Gradle 8.14.3 Distribution
-        run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
-          unzip -q gradle-8.14.3-bin.zip
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
 
       - name: Build Android APK (Live URL Wrapper)
         working-directory: android
         run: |
-          ../gradle-8.14.3/bin/gradle assembleDebug --no-daemon --stacktrace
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
