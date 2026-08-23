@@ -1,20 +1,21 @@
 # CURRENT TASK STATE
 
-- **Task Name:** Android Gradle Build & AGP Dependency Resolution Fix
-- **Current Feature:** Fixed non-existent AGP, Gradle, and AndroidX versions
+- **Task Name:** Capacitor Cordova Plugins & Safe Services Gradle Fix
+- **Current Feature:** Resolved embedded subproject AGP versions and safe google-services check
 - **Status:** Completed
 
 ## Files Modified & Maintained
-- `/android/build.gradle` (Replaced non-existent AGP `8.13.0` with official stable `8.7.3`, updated google-services to `4.4.2`)
-- `/android/variables.gradle` (Replaced invalid AndroidX/Cordova version tags with valid Maven Central versions: compileSdk 34, appcompat 1.7.0, splashscreen 1.0.1, etc.)
-- `/android/gradle/wrapper/gradle-wrapper.properties` (Fixed distribution URL to official Gradle 8.11.1)
-- `/.github/workflows/android-release.yml` (Configured Gradle 8.11.1 in setup-gradle action)
+- `/android/capacitor-cordova-android-plugins/build.gradle` (Replaced internal `8.13.0` AGP with `8.7.3`, updated version defaults)
+- `/android/app/build.gradle` (Replaced throwing file text check with safe `file.exists()` evaluation)
+- `/android/app/src/main/assets/capacitor.plugins.json` (Cleaned plugin registration)
 - `/.ai/CURRENT_TASK.md`
 - `/.ai/CHANGELOG.md`
 
 ## Completed Steps
-- [x] Diagnosed GitHub Actions build log failure: Non-existent AGP 8.13.0 and Gradle 8.14.3 caused Gradle dependency resolution crashes.
-- [x] Replaced with stable Android Gradle Plugin 8.7.3, Gradle 8.11.1, and verified AndroidX library versions in `variables.gradle`.
+- [x] Identified hidden subproject build file (`android/capacitor-cordova-android-plugins/build.gradle`) that still contained `classpath 'com.android.tools.build:gradle:8.13.0'`.
+- [x] Fixed AGP to stable `8.7.3` across all root and sub-module build scripts.
+- [x] Hardened `google-services.json` evaluation to prevent build-time crashes when optional push notification config is absent.
+- [x] Removed unused push notification reflection entry from `capacitor.plugins.json`.
 - [x] Verified zero TypeScript/lint errors and successful project compilation.
 - [x] Synced all changes directly to GitHub repository `saiqul211/niooonchat`.
 

@@ -2,6 +2,12 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.5.4] - 2026-08-23
+### Fixed
+- Fixed remaining AGP `8.13.0` reference in `android/capacitor-cordova-android-plugins/build.gradle` by updating it to stable `8.7.3`.
+- Replaced throwing `servicesJSON.text` check in `android/app/build.gradle` with safe `servicesJSON.exists()`.
+- Removed unused `@capacitor/push-notifications` reflection entry from `android/app/src/main/assets/capacitor.plugins.json`.
+
 ## [1.5.3] - 2026-08-23
 ### Fixed
 - Fixed Android build failure caused by non-existent AGP version (`8.13.0` -> `8.7.3`) and Gradle version (`8.14.3` -> `8.11.1`).
