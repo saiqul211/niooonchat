@@ -1,19 +1,17 @@
 # CURRENT TASK STATE
 
-- **Task Name:** Pure URL-Based Native Android Build Pipeline Optimization
-- **Current Feature:** Removal of Node.js CI Steps & Direct Live URL Pipeline
+- **Task Name:** Capacitor Android Plugin Resolution & CI/CD Pipeline Fix
+- **Current Feature:** Restored npm plugin dependency resolution for Gradle
 - **Status:** Completed
 
 ## Files Modified & Maintained
-- `/.github/workflows/android-release.yml` (Removed Node.js 22 setup, npm install, and web sync steps; streamlined pure Gradle/Java pipeline)
-- `/capacitor.config.ts` (Configured direct server live remote URL)
+- `/.github/workflows/android-release.yml` (Restored Node.js & npm install so Gradle can find Capacitor native plugin libraries in `node_modules/@capacitor/*`)
 - `/.ai/CURRENT_TASK.md`
 - `/.ai/CHANGELOG.md`
 
 ## Completed Steps
-- [x] Analyzed requirements: Android application runs directly through the live web application URL.
-- [x] Removed `Setup Node.js 22`, `npm install`, and `npx cap sync android` from `.github/workflows/android-release.yml`.
-- [x] Streamlined workflow to directly build Android APK using standalone Gradle and Java JDK 21.
+- [x] Diagnosed GitHub Actions build failure: Gradle failed because Capacitor's native Java plugins reside in `node_modules/@capacitor/*` (configured in `capacitor.settings.gradle`).
+- [x] Restored streamlined `npm install --no-audit --no-fund` step in `.github/workflows/android-release.yml` without unnecessary web bundle build steps.
 - [x] Verified zero TypeScript/lint errors and verified app compilation.
 - [x] Synced all changes directly to GitHub repository `saiqul211/niooonchat`.
 

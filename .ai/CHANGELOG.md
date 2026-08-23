@@ -2,10 +2,10 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
-## [1.5.0] - 2026-08-23
-### Changed
-- Streamlined GitHub Actions Android release workflow (`android-release.yml`) by removing Node.js 22 setup, `npm install`, and `npx cap sync` steps.
-- The Android pipeline now builds the live remote URL APK wrapper directly using Java JDK 21 and Gradle 8.14.3.
+## [1.5.1] - 2026-08-23
+### Fixed
+- Fixed GitHub Actions Android release workflow by restoring `npm install --no-audit --no-fund` step. This ensures Gradle can locate Capacitor's native bridge and plugin libraries in `node_modules/@capacitor/*`.
+- Kept the live remote URL wrapper configuration intact without unnecessary web asset building.
 
 ## [1.4.1] - 2026-08-23
 ### Fixed

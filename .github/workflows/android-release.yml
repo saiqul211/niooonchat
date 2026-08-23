@@ -23,6 +23,14 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm install --no-audit --no-fund
+
       - name: Download Standalone Gradle 8.14.3 Distribution
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
