@@ -28,6 +28,11 @@ jobs:
         with:
           node-version: 22
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
       - name: Install Plugin Dependencies
         run: npm install
 
@@ -41,9 +46,7 @@ jobs:
 
       - name: Build Android APK (Live URL Wrapper)
         working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -62,7 +65,8 @@ jobs:
             - Native Capacitor Android Container
             - Live Remote URL: https://niooonchat.vercel.app
             - Supabase Realtime & Strict Dark Mode UI
-            - Native Status Bar, Splash Screen, Haptics, Hardware Back Navigation, Push Notifications & Offline Mode
+            - Fixed app startup crash & native resource inflaters
+            - Native Status Bar, Splash Screen, Haptics, Hardware Back Navigation & Safe Network Handling
           files: android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
