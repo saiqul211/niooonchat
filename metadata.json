@@ -1,6 +1,6 @@
 {
   "name": "Niooon Chat",
-  "description": "Mobile-first responsive web application layout shell.",
+  "description": "High-speed realtime direct messaging web application with Supabase integration.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

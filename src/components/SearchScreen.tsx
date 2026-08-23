@@ -68,7 +68,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
             setQuery(e.target.value);
             searchUsers(e.target.value);
           }}
-          placeholder="ইউজারনেম দিয়ে খুঁজুন (যেমন: @raihan)..."
+          placeholder="Search by username (e.g. @raihan)..."
           className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
         />
       </form>
@@ -77,7 +77,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-1.5">
           <h3 className="text-xs font-semibold text-neutral-300">
-            {query ? `'${query}' সার্চের ফলাফল` : 'ইউজার তালিকা'}
+            {query ? `Results for '${query}'` : 'User Directory'}
           </h3>
           <span className="text-[10px] text-neutral-500">({users.length})</span>
         </div>
@@ -116,7 +116,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
                   className="py-1.5 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
-                  <span>চ্যাট</span>
+                  <span>Chat</span>
                 </button>
               </div>
             );
@@ -124,8 +124,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
         ) : (
           <div className="py-16 text-center text-neutral-500">
             <User className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-xs font-medium text-neutral-400 mb-0.5">কোনো ইউজার পাওয়া যায়নি</p>
-            <p className="text-[11px] text-neutral-500">ইউজারনেম বা নাম লিখে অনুসন্ধান করুন</p>
+            <p className="text-xs font-medium text-neutral-400 mb-0.5">No users found</p>
+            <p className="text-[11px] text-neutral-500">Search by entering a name or username above</p>
           </div>
         )}
       </div>

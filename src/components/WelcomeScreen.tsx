@@ -33,7 +33,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, sessio
           Niooon Chat
         </h1>
         <p className="text-xs text-neutral-400 max-w-[280px] leading-relaxed">
-          দ্রুতগতির রিয়েলটাইম ডিরেক্ট মেসেজিং প্ল্যাটফর্ম — যেখানে বন্ধুদের সাথে নিরাপদ ও তাৎক্ষণিক চ্যাট করুন।
+          High-speed realtime direct messaging platform — connect safely and instantly with friends.
         </p>
       </div>
 
@@ -44,8 +44,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, sessio
             <Zap className="w-4.5 h-4.5 text-amber-400" />
           </div>
           <div className="text-left">
-            <h3 className="text-xs font-semibold text-neutral-200">তাত্ক্ষণিক রিয়েলটাইম মেসেজিং</h3>
-            <p className="text-[11px] text-neutral-400 mt-0.5">কোনো বিলম্ব ছাড়াই সরাসরি বার্তা প্রেরণ ও প্রাপ্যতা</p>
+            <h3 className="text-xs font-semibold text-neutral-200">Instant Realtime Messaging</h3>
+            <p className="text-[11px] text-neutral-400 mt-0.5">Direct message delivery and read receipts with zero delay</p>
           </div>
         </div>
 
@@ -54,8 +54,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, sessio
             <Shield className="w-4.5 h-4.5 text-emerald-400" />
           </div>
           <div className="text-left">
-            <h3 className="text-xs font-semibold text-neutral-200">সুরক্ষিত ও পার্সোনালাইজড প্রোফাইল</h3>
-            <p className="text-[11px] text-neutral-400 mt-0.5">অনন্য ইউজারনেম ও এনক্রিপ্টেড ডাটাবেস নিরাপত্তা</p>
+            <h3 className="text-xs font-semibold text-neutral-200">Secure & Private Profiles</h3>
+            <p className="text-[11px] text-neutral-400 mt-0.5">Unique usernames and encrypted database protection</p>
           </div>
         </div>
 
@@ -64,8 +64,8 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, sessio
             <Sparkles className="w-4.5 h-4.5 text-blue-400" />
           </div>
           <div className="text-left">
-            <h3 className="text-xs font-semibold text-neutral-200">অ্যান্ড্রয়েড ও ওয়েব সিঙ্ক</h3>
-            <p className="text-[11px] text-neutral-400 mt-0.5">সব ডিভাইসে নিরবচ্ছিন্ন নোটিফিকেশন ও মেসেজ এক্সেস</p>
+            <h3 className="text-xs font-semibold text-neutral-200">Android & Web Sync</h3>
+            <p className="text-[11px] text-neutral-400 mt-0.5">Seamless notifications and message access on all devices</p>
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, sessio
             onClick={() => handleNav('home')}
             className="w-full py-4 px-4 bg-neutral-100 hover:bg-white text-black font-bold text-xs rounded-2xl transition-all shadow-2xl active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span>আপনার চ্যাটে প্রবেশ করুন ({sessionUser.user_metadata?.full_name || 'Home'})</span>
+            <span>Enter Your Chats ({sessionUser.user_metadata?.full_name || 'Home'})</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         ) : (
@@ -88,7 +88,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, sessio
               className="w-full py-4 px-4 bg-neutral-100 hover:bg-white text-black font-bold text-xs rounded-2xl transition-all shadow-2xl active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
-              <span>লগইন করুন (Login)</span>
+              <span>Log In</span>
               <ArrowRight className="w-4 h-4 ml-auto" />
             </button>
 
@@ -98,7 +98,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, sessio
               className="w-full py-3.5 px-4 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 text-neutral-100 font-semibold text-xs rounded-2xl transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
             >
               <UserPlus className="w-4 h-4 text-neutral-400" />
-              <span>নতুন অ্যাকাউন্ট তৈরি করুন (Sign Up)</span>
+              <span>Create New Account</span>
             </button>
           </>
         )}

@@ -95,9 +95,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           const d = new Date(val.lastMsg.created_at);
           const now = new Date();
           if (d.toDateString() === now.toDateString()) {
-            timeStr = d.toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' });
+            timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
           } else {
-            timeStr = d.toLocaleDateString('bn-BD', { month: 'short', day: 'numeric' });
+            timeStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           }
         }
 
@@ -192,14 +192,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             type="text"
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
-            placeholder="ইনবক্সে সার্চ করুন..."
+            placeholder="Search in inbox..."
             className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-2 pl-9 pr-3 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
           />
         </div>
         <button
           onClick={() => onNavigate('search')}
           className="p-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-xl text-neutral-300 hover:text-white transition-colors shrink-0 cursor-pointer"
-          title="নতুন ইউজার খুঁজুন"
+          title="Find new users"
         >
           <MessageSquarePlus className="w-4 h-4" />
         </button>
@@ -215,7 +215,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
               : 'text-neutral-400 hover:text-neutral-200'
           }`}
         >
-          সকল চ্যাট ({conversations.length})
+          All Chats ({conversations.length})
         </button>
         <button
           onClick={() => setActiveTab('unread')}
@@ -225,7 +225,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
               : 'text-neutral-400 hover:text-neutral-200'
           }`}
         >
-          <span>নতুন বার্তা</span>
+          <span>Unread</span>
           {conversations.some((c) => c.unreadCount > 0) && (
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           )}
@@ -237,7 +237,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center text-neutral-500">
             <Loader2 className="w-6 h-6 animate-spin mb-2" />
-            <p className="text-xs">ইনবক্স আপডেট হচ্ছে...</p>
+            <p className="text-xs">Updating inbox...</p>
           </div>
         ) : filteredConversations.length > 0 ? (
           filteredConversations.map((chat) => (
@@ -272,7 +272,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
 
                 <div className="flex items-center justify-between gap-1">
                   <p className="text-[11px] text-neutral-400 truncate leading-tight">
-                    {chat.isMyMessage && <span className="text-neutral-500 mr-1">আপনি:</span>}
+                    {chat.isMyMessage && <span className="text-neutral-500 mr-1">You:</span>}
                     {chat.lastMessage}
                   </p>
                   {chat.unreadCount > 0 ? (
@@ -291,16 +291,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-2 text-neutral-400">
               <MessageCircle className="w-6 h-6 text-neutral-500" />
             </div>
-            <p className="text-xs font-medium text-neutral-300 mb-0.5">কোনো চ্যাট এখনো শুরু হয়নি</p>
+            <p className="text-xs font-medium text-neutral-300 mb-0.5">No conversations yet</p>
             <p className="text-[11px] text-neutral-500 max-w-xs mx-auto mb-4">
-              যেকোনো ইউজারকে মেসেজ পাঠানো হলে বা কেউ আপনাকে মেসেজ দিলে তা সাথে সাথে এখানে চলে আসবে।
+              When you send or receive direct messages, they will appear here in real time.
             </p>
             <button
               onClick={() => onNavigate('search')}
               className="py-2 px-3.5 rounded-xl bg-neutral-100 hover:bg-white text-black text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-md"
             >
               <MessageSquarePlus className="w-3.5 h-3.5" />
-              <span>ইউজার খুঁজে চ্যাট শুরু করুন</span>
+              <span>Find Users & Start Chat</span>
             </button>
           </div>
         )}

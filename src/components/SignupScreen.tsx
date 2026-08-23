@@ -30,23 +30,23 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
 
     // Form Validations
     if (!fullName.trim() || !username.trim() || !email.trim() || !password) {
-      setErrorMsg('সবগুলো তথ্য পূরণ করা বাধ্যতামূলক');
+      setErrorMsg('All fields are required.');
       return;
     }
 
     const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
     if (cleanUsername.length < 3) {
-      setErrorMsg('ইউজারনেম কমপক্ষে ৩ অক্ষরের হতে হবে (শুধু a-z, 0-9, _ ব্যবহার করুন)');
+      setErrorMsg('Username must be at least 3 characters (only a-z, 0-9, _).');
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে');
+      setErrorMsg('Password must be at least 6 characters long.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg('পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড মিলছে না');
+      setErrorMsg('Passwords do not match.');
       return;
     }
 
@@ -61,7 +61,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
         .maybeSingle();
 
       if (existingUser) {
-        throw new Error('এই ইউজারনেমটি ইতিমধ্যে ব্যবহার করা হয়েছে। অন্য একটি নির্বাচন করুন।');
+        throw new Error('This username is already taken. Please choose another.');
       }
 
       // 2. Sign up user in Supabase Auth
@@ -91,13 +91,13 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
           console.warn('Profile sync warning:', profileErr.message);
         }
 
-        setSuccessMsg('অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!');
+        setSuccessMsg('Account created successfully!');
         setTimeout(() => {
           onSuccess();
         }, 1200);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'সাইন আপ ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      setErrorMsg(err.message || 'Sign up failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -115,7 +115,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
       });
       if (error) throw error;
     } catch (err: any) {
-      setErrorMsg(err.message || 'GitHub সাইন আপ ব্যর্থ হয়েছে');
+      setErrorMsg(err.message || 'GitHub sign up failed.');
       setLoading(false);
     }
   };
@@ -130,7 +130,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
           className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white py-2 px-3 rounded-xl bg-neutral-900 border border-neutral-800 transition-all active:scale-95 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>ওয়েলকাম পেজে ফিরুন</span>
+          <span>Back to Welcome</span>
         </button>
         <span className="text-[11px] text-neutral-500 font-mono">#signup</span>
       </div>
@@ -141,8 +141,8 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
           <div className="w-13 h-13 bg-gradient-to-b from-neutral-800 to-neutral-950 border border-neutral-700/80 rounded-2xl mx-auto flex items-center justify-center mb-2.5 shadow-xl">
             <UserPlus className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">নতুন অ্যাকাউন্ট তৈরি করুন</h2>
-          <p className="text-xs text-neutral-400 mt-1">Niooon Chat এ যোগ দিতে প্রয়োজনীয় তথ্য দিন</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Create New Account</h2>
+          <p className="text-xs text-neutral-400 mt-1">Enter your details to join Niooon Chat</p>
         </div>
 
         {errorMsg && (
@@ -167,12 +167,12 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
           className="w-full py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 text-white font-medium text-xs rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2 mb-3 cursor-pointer"
         >
           <Github className="w-4 h-4" />
-          <span>GitHub দিয়ে দ্রুত সাইন আপ</span>
+          <span>Quick Sign Up with GitHub</span>
         </button>
 
         <div className="flex items-center gap-2.5 mb-3">
           <div className="flex-1 h-px bg-neutral-800"></div>
-          <span className="text-[10px] text-neutral-500 uppercase tracking-wider">অথবা ফর্ম পূরণ করুন</span>
+          <span className="text-[10px] text-neutral-500 uppercase tracking-wider">or fill out the form</span>
           <div className="flex-1 h-px bg-neutral-800"></div>
         </div>
 
@@ -180,7 +180,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
         <form onSubmit={handleSignup} className="space-y-2.5">
           <div>
             <label className="block text-[11px] font-medium text-neutral-300 mb-0.5">
-              ফুল নেম (Full Name)
+              Full Name
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
@@ -199,7 +199,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
 
           <div>
             <label className="block text-[11px] font-medium text-neutral-300 mb-0.5">
-              ইউজারনেম (Username)
+              Username
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
@@ -218,7 +218,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
 
           <div>
             <label className="block text-[11px] font-medium text-neutral-300 mb-0.5">
-              ইমেইল (Email)
+              Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
@@ -237,7 +237,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
 
           <div>
             <label className="block text-[11px] font-medium text-neutral-300 mb-0.5">
-              পাসওয়ার্ড (Password)
+              Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
@@ -248,7 +248,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="কমপক্ষে ৬ অক্ষর"
+                placeholder="At least 6 characters"
                 className="w-full bg-neutral-900/90 border border-neutral-800 rounded-xl py-2 pl-9 pr-3 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
               />
             </div>
@@ -256,7 +256,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
 
           <div>
             <label className="block text-[11px] font-medium text-neutral-300 mb-0.5">
-              কনফার্ম পাসওয়ার্ড
+              Confirm Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
@@ -267,7 +267,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="পাসওয়ার্ড পুনরাবৃত্তি করুন"
+                placeholder="Repeat password"
                 className="w-full bg-neutral-900/90 border border-neutral-800 rounded-xl py-2 pl-9 pr-3 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
               />
             </div>
@@ -281,10 +281,10 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
             {loading ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>অ্যাকাউন্ট তৈরি হচ্ছে...</span>
+                <span>Creating account...</span>
               </>
             ) : (
-              <span>সাইন আপ সম্পন্ন করুন</span>
+              <span>Complete Sign Up</span>
             )}
           </button>
         </form>
@@ -293,13 +293,13 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
       {/* Switch to Login at bottom */}
       <div className="max-w-sm mx-auto w-full text-center border-t border-neutral-900 pt-3 pb-2">
         <p className="text-xs text-neutral-400">
-          ইতিমধ্যে অ্যাকাউন্ট রয়েছে?{' '}
+          Already have an account?{' '}
           <button
             type="button"
             onClick={() => onNavigate('login')}
             className="text-white font-semibold hover:underline cursor-pointer ml-1"
           >
-            লগইন করুন
+            Log In
           </button>
         </p>
       </div>

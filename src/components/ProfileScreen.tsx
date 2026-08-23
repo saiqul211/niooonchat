@@ -85,7 +85,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
     return (
       <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
         <RefreshCw className="w-8 h-8 animate-spin text-neutral-500 mb-3" />
-        <p className="text-xs">প্রোফাইল লোড হচ্ছে...</p>
+        <p className="text-xs">Loading profile...</p>
       </div>
     );
   }
@@ -96,9 +96,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
         <div className="w-16 h-16 bg-neutral-900 border border-neutral-800 rounded-3xl flex items-center justify-center mb-4">
           <User className="w-8 h-8 text-neutral-500" />
         </div>
-        <h3 className="text-lg font-bold text-neutral-100 mb-1">কোনো অ্যাকাউন্ট লগইন নেই</h3>
+        <h3 className="text-lg font-bold text-neutral-100 mb-1">No Account Logged In</h3>
         <p className="text-xs text-neutral-400 max-w-xs mb-6">
-          প্রোফাইল দেখতে এবং চ্যাট করার জন্য অনুগ্রহ করে আপনার অ্যাকাউন্টে লগইন অথবা সাইন আপ করুন।
+          To view your profile and start chatting, please log in or create a new account.
         </p>
 
         <div className="flex flex-col w-full max-w-xs gap-3">
@@ -107,14 +107,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
             className="w-full py-3 px-4 bg-neutral-100 hover:bg-white text-black font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
           >
             <LogIn className="w-4 h-4" />
-            <span>লগইন করুন</span>
+            <span>Log In</span>
           </button>
           <button
             onClick={() => onNavigate('signup')}
             className="w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-800 font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
-            <span>নতুন অ্যাকাউন্ট তৈরি করুন</span>
+            <span>Create New Account</span>
           </button>
         </div>
       </div>
@@ -127,12 +127,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
     : 'NC';
 
   const memberDate = profile.created_at
-    ? new Date(profile.created_at).toLocaleDateString('bn-BD', {
+    ? new Date(profile.created_at).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
       })
-    : 'আজ';
+    : 'Today';
 
   return (
     <div className="flex flex-col py-2 px-1 animate-fadeIn">
@@ -162,7 +162,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
       {/* Account Details List */}
       <div className="space-y-2.5 mb-6">
         <h4 className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider px-1">
-          অ্যাকাউন্ট সম্পর্কিত তথ্য
+          Account Information
         </h4>
 
         {/* Full Name */}
@@ -172,7 +172,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
               <User className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] text-neutral-400">পুরো নাম</p>
+              <p className="text-[11px] text-neutral-400">Full Name</p>
               <p className="text-xs font-semibold text-neutral-100">{profile.full_name}</p>
             </div>
           </div>
@@ -185,7 +185,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] text-neutral-400">ইউজারনেম</p>
+              <p className="text-[11px] text-neutral-400">Username</p>
               <p className="text-xs font-mono font-semibold text-neutral-100">@{profile.username}</p>
             </div>
           </div>
@@ -198,9 +198,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
               <Github className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] text-neutral-400">GitHub সংযোগ</p>
+              <p className="text-[11px] text-neutral-400">GitHub Connection</p>
               <p className="text-xs font-medium text-neutral-200">
-                {authProvider === 'github' ? 'কানেক্টেড (GitHub OAuth)' : 'কানেক্টেড via @niooon/github'}
+                {authProvider === 'github' ? 'Connected (GitHub OAuth)' : 'Connected via @niooon/github'}
               </p>
             </div>
           </div>
@@ -209,7 +209,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
               onClick={handleGitHubConnect}
               className="py-1 px-2.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-[10px] font-medium rounded-lg transition-colors cursor-pointer"
             >
-              কানেক্ট করুন
+              Connect
             </button>
           )}
         </div>
@@ -221,7 +221,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
               <Mail className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] text-neutral-400">ইমেইল অ্যাড্রেস (ব্যক্তিগত)</p>
+              <p className="text-[11px] text-neutral-400">Email Address (Private)</p>
               <p className="text-xs font-medium text-neutral-100 truncate">{profile.email || userEmail}</p>
             </div>
           </div>
@@ -247,7 +247,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[11px] text-neutral-400">যোগদানের তারিখ</p>
+              <p className="text-[11px] text-neutral-400">Member Since</p>
               <p className="text-xs font-medium text-neutral-200">{memberDate}</p>
             </div>
           </div>
@@ -261,7 +261,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
           className="w-full py-3 px-4 bg-red-950/30 hover:bg-red-900/40 text-red-400 border border-red-900/40 font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
-          <span>লগআউট করুন</span>
+          <span>Log Out</span>
         </button>
       </div>
     </div>

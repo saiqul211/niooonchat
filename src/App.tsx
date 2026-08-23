@@ -165,9 +165,9 @@ export default function App() {
         <div className="w-16 h-16 rounded-3xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-400">
           <WifiOff className="w-8 h-8" />
         </div>
-        <h2 className="text-lg font-bold text-neutral-100 mb-1.5">ইন্টারনেট সংযোগ নেই</h2>
+        <h2 className="text-lg font-bold text-neutral-100 mb-1.5">No Internet Connection</h2>
         <p className="text-xs text-neutral-400 max-w-xs mb-6">
-          অনুগ্রহ করে আপনার মোবাইল ডাটা অথবা ওয়াই-ফাই কানেকশন চেক করে পুনরায় চেষ্টা করুন।
+          Please check your mobile data or Wi-Fi network and try again.
         </p>
         <button
           onClick={handleRetryConnection}
@@ -175,7 +175,7 @@ export default function App() {
           className="py-3 px-6 bg-neutral-100 hover:bg-white text-black font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 cursor-pointer disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${isCheckingOnline ? 'animate-spin' : ''}`} />
-          <span>পুনরায় চেষ্টা করুন</span>
+          <span>Retry Connection</span>
         </button>
       </div>
     );
@@ -207,7 +207,7 @@ export default function App() {
               <button
                 onClick={() => navigateTo('profile')}
                 className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200 hover:border-neutral-500 transition-colors cursor-pointer"
-                title="প্রোফাইল দেখুন"
+                title="View Profile"
               >
                 {sessionUser.user_metadata?.full_name?.[0]?.toUpperCase() || 'U'}
               </button>
@@ -254,7 +254,7 @@ export default function App() {
         {/* Hardware Back Exit Toast */}
         {exitToast && (
           <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-neutral-800/90 backdrop-blur-md border border-neutral-700 text-neutral-200 text-xs px-3.5 py-1.5 rounded-full shadow-lg z-50 animate-fadeIn">
-            অ্যাপ থেকে বের হতে আবার ব্যাক চাপুন
+            Press back again to exit
           </div>
         )}
 

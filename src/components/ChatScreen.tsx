@@ -36,7 +36,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
         if (!isMounted) return;
 
         if (!user) {
-          setErrorMsg('মেসেজ পাঠাতে অনুগ্রহ করে প্রথমে লগইন করুন');
+          setErrorMsg('Please log in first to send messages.');
           setLoading(false);
           return;
         }
@@ -52,7 +52,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
         if (!isMounted) return;
 
         if (userErr || !targetProfile) {
-          setErrorMsg(`'@${targetUsername}' নামের কোনো ইউজার পাওয়া যায়নি`);
+          setErrorMsg(`User '@${targetUsername}' not found.`);
           setLoading(false);
           return;
         }
@@ -135,7 +135,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
       } catch (err: any) {
         if (isMounted) {
           console.error('Chat init error:', err);
-          setErrorMsg('চ্যাট লোড হতে সমস্যা হয়েছে');
+          setErrorMsg('Failed to load chat.');
         }
       } finally {
         if (isMounted) {
@@ -210,7 +210,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 text-neutral-400">
         <Loader2 className="w-7 h-7 animate-spin text-neutral-500 mb-2" />
-        <p className="text-xs">চ্যাট লোড হচ্ছে...</p>
+        <p className="text-xs">Loading chat...</p>
       </div>
     );
   }
@@ -221,13 +221,13 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
         <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-3 text-neutral-500">
           <MessageSquare className="w-6 h-6" />
         </div>
-        <p className="text-sm font-semibold text-neutral-200 mb-1">{errorMsg || 'ইউজার পাওয়া যায়নি'}</p>
-        <p className="text-xs text-neutral-500 mb-5">সার্চ পেজে গিয়ে সঠিক ইউজারনেম দিয়ে খুঁজুন</p>
+        <p className="text-sm font-semibold text-neutral-200 mb-1">{errorMsg || 'User not found'}</p>
+        <p className="text-xs text-neutral-500 mb-5">Search again with a valid username</p>
         <button
           onClick={() => onNavigate('search')}
           className="py-2 px-4 bg-neutral-100 hover:bg-white text-black font-semibold text-xs rounded-xl transition-all cursor-pointer"
         >
-          ইউজার খুঁজুন
+          Find Users
         </button>
       </div>
     );
@@ -245,7 +245,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
           <button
             onClick={() => onNavigate('home')}
             className="p-1.5 rounded-lg hover:bg-neutral-900 text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
-            title="ফিরে যান"
+            title="Go back"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -280,7 +280,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
         <div className="text-center my-2">
           <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800/80 text-[10px] text-neutral-500">
             <Sparkles className="w-3 h-3 text-emerald-400" />
-            <span>শুধুমাত্র ইউজারনেম ভিত্তিক নিরাপদ চ্যাট</span>
+            <span>Encrypted username-based direct messaging</span>
           </div>
         </div>
 
@@ -289,16 +289,16 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
             <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-2 text-neutral-400">
               <Send className="w-5 h-5 text-neutral-500" />
             </div>
-            <p className="text-xs font-medium text-neutral-300 mb-0.5">কোনো বার্তা নেই</p>
+            <p className="text-xs font-medium text-neutral-300 mb-0.5">No messages yet</p>
             <p className="text-[11px] text-neutral-500">
-              @{targetUser.username} এর সাথে চ্যাট শুরু করতে নিচে মেসেজ লিখুন
+              Type a message below to start chatting with @{targetUser.username}
             </p>
           </div>
         ) : (
           messages.map((msg) => {
             const isMe = msg.sender_id === currentUser?.id;
             const timeFormatted = msg.created_at
-              ? new Date(msg.created_at).toLocaleTimeString('bn-BD', {
+              ? new Date(msg.created_at).toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit',
                 })
@@ -329,12 +329,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
                       {msg.is_read ? (
                         <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
                           <CheckCheck className="w-3.5 h-3.5 text-emerald-400 stroke-[2.5]" />
-                          <span>Seen / সিন হয়েছে</span>
+                          <span>Seen</span>
                         </span>
                       ) : (
                         <span className="text-[10px] text-neutral-400 bg-neutral-900 border border-neutral-800 px-1.5 py-0.5 rounded-md flex items-center gap-1">
                           <Check className="w-3.5 h-3.5 text-neutral-500" />
-                          <span>Sent / পাঠানো হয়েছে</span>
+                          <span>Sent</span>
                         </span>
                       )}
                     </div>
@@ -356,7 +356,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          placeholder={`@${targetUser.username} কে মেসেজ পাঠান...`}
+          placeholder={`Message @${targetUser.username}...`}
           className="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 pl-3.5 pr-3.5 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
         />
         <button

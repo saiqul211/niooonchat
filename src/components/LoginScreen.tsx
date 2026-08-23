@@ -22,7 +22,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim() || !password) {
-      setErrorMsg('ইমেইল/ইউজারনেম এবং পাসওয়ার্ড প্রদান করুন');
+      setErrorMsg('Please enter your email/username and password.');
       return;
     }
 
@@ -41,7 +41,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
           .maybeSingle();
 
         if (profileErr || !profileData) {
-          throw new Error('এই ইউজারনেম দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি');
+          throw new Error('No account found with this username.');
         }
       }
 
@@ -58,7 +58,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
         onSuccess();
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'লগইন ব্যর্থ হয়েছে। সঠিক তথ্য প্রদান করুন।');
+      setErrorMsg(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
       });
       if (error) throw error;
     } catch (err: any) {
-      setErrorMsg(err.message || 'GitHub লগইন ব্যর্থ হয়েছে');
+      setErrorMsg(err.message || 'GitHub login failed.');
       setLoading(false);
     }
   };
@@ -91,7 +91,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
           className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white py-2 px-3 rounded-xl bg-neutral-900 border border-neutral-800 transition-all active:scale-95 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>ওয়েলকাম পেজে ফিরুন</span>
+          <span>Back to Welcome</span>
         </button>
         <span className="text-[11px] text-neutral-500 font-mono">#login</span>
       </div>
@@ -102,8 +102,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
           <div className="w-14 h-14 bg-gradient-to-b from-neutral-800 to-neutral-950 border border-neutral-700/80 rounded-2xl mx-auto flex items-center justify-center mb-3 shadow-xl">
             <LogIn className="w-7 h-7 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">স্বাগতম ফিরে আসার জন্য</h2>
-          <p className="text-xs text-neutral-400 mt-1">আপনার অ্যাকাউন্টে লগইন করে চ্যাট চালিয়ে যান</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Welcome Back</h2>
+          <p className="text-xs text-neutral-400 mt-1">Log in to your account to continue chatting</p>
         </div>
 
         {errorMsg && (
@@ -121,12 +121,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
           className="w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700/80 text-white font-semibold text-xs rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center gap-2.5 mb-4 cursor-pointer"
         >
           <Github className="w-4 h-4" />
-          <span>GitHub দিয়ে চালিয়ে যান</span>
+          <span>Continue with GitHub</span>
         </button>
 
         <div className="flex items-center gap-2.5 mb-4">
           <div className="flex-1 h-px bg-neutral-800"></div>
-          <span className="text-[10px] text-neutral-500 uppercase tracking-wider">অথবা পাসওয়ার্ড দিয়ে</span>
+          <span className="text-[10px] text-neutral-500 uppercase tracking-wider">or with password</span>
           <div className="flex-1 h-px bg-neutral-800"></div>
         </div>
 
@@ -134,7 +134,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
         <form onSubmit={handleLogin} className="space-y-3.5">
           <div>
             <label className="block text-xs font-medium text-neutral-300 mb-1.5">
-              ইমেইল অথবা ইউজারনেম
+              Email or Username
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
@@ -145,7 +145,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                placeholder="name@example.com অথবা username"
+                placeholder="name@example.com or username"
                 className="w-full bg-neutral-900/90 border border-neutral-800 rounded-xl py-3 pl-10 pr-3.5 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-600 transition-colors"
               />
             </div>
@@ -153,7 +153,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
 
           <div>
             <label className="block text-xs font-medium text-neutral-300 mb-1.5">
-              পাসওয়ার্ড
+              Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
@@ -178,10 +178,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>লগইন হচ্ছে...</span>
+                <span>Logging in...</span>
               </>
             ) : (
-              <span>লগইন করুন</span>
+              <span>Log In</span>
             )}
           </button>
         </form>
@@ -190,13 +190,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
       {/* Switch to Signup at bottom */}
       <div className="max-w-sm mx-auto w-full text-center border-t border-neutral-900 pt-4 pb-2">
         <p className="text-xs text-neutral-400">
-          নতুন অ্যাকাউন্ট তৈরি করতে চান?{' '}
+          Don't have an account?{' '}
           <button
             type="button"
             onClick={() => onNavigate('signup')}
             className="text-white font-semibold hover:underline cursor-pointer ml-1"
           >
-            সাইন আপ করুন
+            Sign Up
           </button>
         </p>
       </div>
