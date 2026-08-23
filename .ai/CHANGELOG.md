@@ -2,6 +2,12 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.5.5] - 2026-08-23
+### Fixed
+- Fixed GitHub Actions Step `Setup Gradle` failure by replacing external action with direct native Gradle Wrapper execution (`./gradlew assembleDebug`).
+- Added `npx cap sync android` step to ensure assets and native plugin configs are cleanly generated.
+- Optimized gradle-wrapper distribution to fast binary package (`gradle-8.11.1-bin.zip`).
+
 ## [1.5.4] - 2026-08-23
 ### Fixed
 - Fixed remaining AGP `8.13.0` reference in `android/capacitor-cordova-android-plugins/build.gradle` by updating it to stable `8.7.3`.

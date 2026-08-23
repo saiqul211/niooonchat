@@ -1,22 +1,19 @@
 # CURRENT TASK STATE
 
-- **Task Name:** Capacitor Cordova Plugins & Safe Services Gradle Fix
-- **Current Feature:** Resolved embedded subproject AGP versions and safe google-services check
-- **Status:** Completed
+- **Task Name:** GitHub Actions CI/CD Pipeline & Gradle Wrapper Fix
+- **Current Feature:** Direct Gradle Wrapper Execution & Active Build Monitoring
+- **Status:** In Progress (Pushing & Monitoring Build)
 
 ## Files Modified & Maintained
-- `/android/capacitor-cordova-android-plugins/build.gradle` (Replaced internal `8.13.0` AGP with `8.7.3`, updated version defaults)
-- `/android/app/build.gradle` (Replaced throwing file text check with safe `file.exists()` evaluation)
-- `/android/app/src/main/assets/capacitor.plugins.json` (Cleaned plugin registration)
+- `/.github/workflows/android-release.yml` (Removed root-bound setup-gradle action, restored direct `./gradlew` execution & cap sync)
+- `/android/gradle/wrapper/gradle-wrapper.properties` (Optimized distribution URL to `gradle-8.11.1-bin.zip`)
 - `/.ai/CURRENT_TASK.md`
 - `/.ai/CHANGELOG.md`
 
 ## Completed Steps
-- [x] Identified hidden subproject build file (`android/capacitor-cordova-android-plugins/build.gradle`) that still contained `classpath 'com.android.tools.build:gradle:8.13.0'`.
-- [x] Fixed AGP to stable `8.7.3` across all root and sub-module build scripts.
-- [x] Hardened `google-services.json` evaluation to prevent build-time crashes when optional push notification config is absent.
-- [x] Removed unused push notification reflection entry from `capacitor.plugins.json`.
-- [x] Verified zero TypeScript/lint errors and successful project compilation.
-- [x] Synced all changes directly to GitHub repository `saiqul211/niooonchat`.
+- [x] Identified root-cause of Step `Setup Gradle` failure: external action scanning root instead of android subfolder.
+- [x] Switched to direct `./gradlew assembleDebug` runner using project's Gradle Wrapper 8.11.1.
+- [x] Pushed changes and initiating active monitoring until GitHub Release completes successfully.
+
 
 
