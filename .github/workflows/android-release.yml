@@ -39,16 +39,15 @@ jobs:
       - name: Sync Capacitor Android
         run: npx cap sync android
 
-      - name: Ensure Valid Gradle Wrapper Jar
+      - name: Download Standalone Gradle Distribution
         run: |
-          mkdir -p android/gradle/wrapper
-          curl -Lo android/gradle/wrapper/gradle-wrapper.jar https://raw.githubusercontent.com/gradle/gradle/v8.11.1/gradle/wrapper/gradle-wrapper.jar
+          wget -q https://services.gradle.org/distributions/gradle-8.11.1-bin.zip
+          unzip -q gradle-8.11.1-bin.zip
 
       - name: Build Android APK (Live URL Wrapper)
         working-directory: android
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ../gradle-8.11.1/bin/gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -67,7 +66,7 @@ jobs:
             - Native Capacitor Android Container
             - Live Remote URL: https://niooonchat.vercel.app
             - Supabase Realtime & Strict Dark Mode UI
-            - Fixed app startup crash & native resource inflaters
+            - Fixed app startup crash (added missing colors.xml, updated styles, removed FCM crash)
             - Native Status Bar, Splash Screen, Haptics, Hardware Back Navigation & Safe Network Handling
           files: android/app/build/outputs/apk/debug/app-debug.apk
         env:
