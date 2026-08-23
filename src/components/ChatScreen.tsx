@@ -277,7 +277,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
       </header>
 
       {/* Message Stream Area */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 space-y-3 bg-[#0a0a0a]">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3.5 space-y-3 bg-[#0a0a0a] overscroll-contain">
         {/* Chat Security Notice */}
         <div className="text-center my-2">
           <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800/80 text-[10px] text-neutral-500">
@@ -312,7 +312,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
                 className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[80%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-md ${
+                  className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-md selectable-text ${
                     isMe
                       ? 'bg-neutral-100 text-black font-medium rounded-br-xs'
                       : 'bg-neutral-900 text-neutral-100 border border-neutral-800 rounded-bl-xs'

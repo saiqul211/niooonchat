@@ -161,7 +161,7 @@ export default function App() {
   // Offline Screen View
   if (!isOnline) {
     return (
-      <div className="h-screen w-full bg-black flex flex-col justify-center items-center p-6 text-center animate-fadeIn safe-top safe-bottom">
+      <div className="fixed inset-0 w-full h-full bg-black flex flex-col justify-center items-center p-6 text-center animate-fadeIn safe-top safe-bottom">
         <div className="w-16 h-16 rounded-3xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-400">
           <WifiOff className="w-8 h-8" />
         </div>
@@ -182,9 +182,9 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-full bg-neutral-950 flex justify-center items-center overflow-hidden font-sans text-neutral-100 selection:bg-neutral-800">
-      {/* Strict Native Smartphone Shell */}
-      <div className="w-full max-w-[430px] h-full max-h-screen bg-black shadow-2xl shadow-black relative flex flex-col border-x border-neutral-900 overflow-hidden">
+    <div className="fixed inset-0 w-full h-full bg-black flex justify-center overflow-hidden font-sans text-neutral-100 selection:bg-neutral-800">
+      {/* Responsive App Frame - 100% on Mobile, Auto Centered on Larger Displays */}
+      <div className="w-full h-full max-w-md sm:max-w-lg md:max-w-xl bg-black relative flex flex-col overflow-hidden sm:border-x sm:border-neutral-900/80">
         
         {/* Pinned Top Header Block (Only in main logged-in app screens) */}
         {showAppHeader && (
@@ -217,8 +217,8 @@ export default function App() {
           </header>
         )}
 
-        {/* Scrollable Core View Container */}
-        <main className={`flex-1 bg-[#0a0a0a] overflow-y-auto overflow-x-hidden flex flex-col ${isAuthScreen || isChatRoom ? 'p-0' : 'p-3.5'}`}>
+        {/* Scrollable Core View Container with strict height bounds */}
+        <main className={`flex-1 min-h-0 bg-[#0a0a0a] overflow-y-auto overflow-x-hidden flex flex-col overscroll-contain ${isAuthScreen || isChatRoom ? 'p-0' : 'p-3.5 sm:p-4'}`}>
           {currentRoute === 'welcome' && (
             <WelcomeScreen
               onNavigate={navigateTo}

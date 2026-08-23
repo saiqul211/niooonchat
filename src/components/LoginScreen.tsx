@@ -82,7 +82,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onSuccess, onNavigate 
   };
 
   return (
-    <div className="w-full min-h-full flex-1 flex flex-col justify-between py-6 px-5 safe-top safe-bottom bg-black text-neutral-100 animate-fadeIn">
+    <div className="w-full h-full min-h-full flex-1 flex flex-col justify-between py-6 px-5 safe-top safe-bottom bg-black text-neutral-100 animate-fadeIn overflow-y-auto overscroll-contain">
       {/* Top Header / Back to Welcome */}
       <div className="flex items-center justify-between mb-2">
         <button

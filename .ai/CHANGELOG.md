@@ -2,6 +2,13 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.4.0] - 2026-08-23
+### Fixed
+- Fixed rigid smartphone width constraint that was preventing the application from fitting naturally across different phone screen sizes, orientations, and displays.
+- Resolved rubber-band viewport pulling and entire window scrolling by locking root layout with `position: fixed; inset: 0; height: 100dvh; overscroll-behavior: none;`.
+- Fixed list container overflow and layout jumping by adding `min-h-0`, `overscroll-contain`, and flex-1 constraints in `HomeScreen`, `SearchScreen`, and `ChatScreen`.
+- Added flexible scroll containment on authentication screens (`WelcomeScreen`, `LoginScreen`, `SignupScreen`) for short screens or when virtual keyboards appear.
+
 ## [1.3.0] - 2026-08-23
 ### Fixed
 - Resolved Android system status bar (notch, battery, network, clock) overlapping and colliding with the application header.

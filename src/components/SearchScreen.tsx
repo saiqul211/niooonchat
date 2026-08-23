@@ -223,7 +223,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
       </div>
 
       {/* List (Scrollable Area) */}
-      <div className="flex-1 space-y-1.5">
+      <div className="flex-1 min-h-0 space-y-1.5 overflow-y-auto overscroll-contain pr-0.5">
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center text-neutral-500">
             <Loader2 className="w-6 h-6 animate-spin mb-2" />
