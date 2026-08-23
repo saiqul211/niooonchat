@@ -2,6 +2,12 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.4.1] - 2026-08-23
+### Fixed
+- Fixed Android status bar clock and battery indicator overlap by configuring automatic `max(env(safe-area-inset-*), 36px/16px)` fallback offsets in CSS.
+- Configured Android theme `styles.xml` with `android:fitsSystemWindows="true"` and `android:windowDrawsSystemBarBackgrounds="true"` to prevent WebView content from underlapping the system status bar.
+- Ensured authentication views (`LoginScreen`, `SignupScreen`, `WelcomeScreen`) and top headers always remain well clear of notches, punch-holes, and system indicators.
+
 ## [1.4.0] - 2026-08-23
 ### Fixed
 - Fixed rigid smartphone width constraint that was preventing the application from fitting naturally across different phone screen sizes, orientations, and displays.
