@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { PublicProfile } from '../types';
-import { Search, User, MessageCircle, Loader2, Sparkles } from 'lucide-react';
+import { Search, User, MessageCircle, Loader2, MessageSquareDashed } from 'lucide-react';
 
 interface SearchScreenProps {
   onNavigate: (route: string) => void;
@@ -9,87 +9,145 @@ interface SearchScreenProps {
 
 export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
   const [query, setQuery] = useState('');
-  const [users, setUsers] = useState<PublicProfile[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [chattedUsers, setChattedUsers] = useState<PublicProfile[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setCurrentUserId(user?.id || null);
-    });
-  }, []);
-
-  // Strictly query public profile fields ONLY - NEVER fetch email
-  const searchUsers = async (searchTerm: string) => {
+  // Fetch only users with whom the current user has sent or received messages
+  const loadChattedUsers = useCallback(async () => {
     setLoading(true);
     try {
-      let req = supabase
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setChattedUsers([]);
+        setLoading(false);
+        return;
+      }
+
+      // 1. Fetch distinct message pairs involving the current user
+      const { data: messages, error: msgErr } = await supabase
+        .from('messages')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+
+      if (msgErr || !messages || messages.length === 0) {
+        setChattedUsers([]);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Extract unique chatted partner IDs
+      const partnerIdsSet = new Set<string>();
+      messages.forEach((m: { sender_id: string; receiver_id: string }) => {
+        const partnerId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+        if (partnerId && partnerId !== user.id) {
+          partnerIdsSet.add(partnerId);
+        }
+      });
+
+      const partnerIds = Array.from(partnerIdsSet);
+      if (partnerIds.length === 0) {
+        setChattedUsers([]);
+        setLoading(false);
+        return;
+      }
+
+      // 3. Fetch public profiles strictly for these chatted partners only
+      const { data: profiles, error: profErr } = await supabase
         .from('profiles')
         .select('id, full_name, username, avatar_url, status, created_at')
-        .limit(25);
+        .in('id', partnerIds);
 
-      if (searchTerm.trim()) {
-        const cleanTerm = searchTerm.trim().replace('@', '');
-        req = req.or(`username.ilike.%${cleanTerm}%,full_name.ilike.%${cleanTerm}%`);
-      }
-
-      const { data, error } = await req;
-      if (!error && data) {
-        // Filter out current user from search list
-        setUsers(data.filter((u: PublicProfile) => u.id !== currentUserId));
+      if (!profErr && profiles) {
+        setChattedUsers(profiles);
+      } else {
+        setChattedUsers([]);
       }
     } catch (err) {
-      console.error('Search error:', err);
+      console.error('Error fetching chatted users:', err);
+      setChattedUsers([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    searchUsers('');
-  }, [currentUserId]);
+    loadChattedUsers();
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    searchUsers(query);
-  };
+    // Subscribe to messages changes to keep chatted contacts live
+    const channel = supabase
+      .channel('search-chatted-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messages' },
+        () => {
+          loadChattedUsers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadChattedUsers]);
+
+  // Filter ONLY within chatted users based on user search query
+  const cleanQuery = query.trim().toLowerCase().replace('@', '');
+  const filteredUsers = cleanQuery
+    ? chattedUsers.filter((u) => {
+        const matchUsername = u.username?.toLowerCase().includes(cleanQuery);
+        const matchFullName = u.full_name?.toLowerCase().includes(cleanQuery);
+        return matchUsername || matchFullName;
+      })
+    : chattedUsers;
 
   return (
     <div className="flex flex-col h-full space-y-3 animate-fadeIn">
       {/* Search Input Box */}
-      <form onSubmit={handleSearchSubmit} className="relative">
+      <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
           <Search className="w-3.5 h-3.5" />
         </div>
         <input
           type="text"
           value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            searchUsers(e.target.value);
-          }}
-          placeholder="Search by username (e.g. @raihan)..."
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search chatted users (e.g. @username)..."
           className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
         />
-      </form>
+      </div>
 
       {/* Results Header */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-1.5">
           <h3 className="text-xs font-semibold text-neutral-300">
-            {query ? `Results for '${query}'` : 'User Directory'}
+            {query ? `Search Results` : 'Chatted Contacts'}
           </h3>
-          <span className="text-[10px] text-neutral-500">({users.length})</span>
+          <span className="text-[10px] text-neutral-500">
+            ({filteredUsers.length}{query ? ` of ${chattedUsers.length}` : ''})
+          </span>
         </div>
         {loading && <Loader2 className="w-3.5 h-3.5 animate-spin text-neutral-500" />}
       </div>
 
       {/* List (Scrollable Area) */}
       <div className="flex-1 space-y-1.5">
-        {users.length > 0 ? (
-          users.map((u) => {
+        {loading ? (
+          <div className="py-20 flex flex-col items-center justify-center text-neutral-500">
+            <Loader2 className="w-6 h-6 animate-spin mb-2" />
+            <p className="text-xs">Loading chatted users...</p>
+          </div>
+        ) : filteredUsers.length > 0 ? (
+          filteredUsers.map((u) => {
             const initials = u.full_name
-              ? u.full_name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()
+              ? u.full_name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .substring(0, 2)
+                  .toUpperCase()
               : 'U';
             return (
               <div
@@ -122,10 +180,24 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
             );
           })
         ) : (
-          <div className="py-16 text-center text-neutral-500">
-            <User className="w-8 h-8 mx-auto mb-2 opacity-40" />
-            <p className="text-xs font-medium text-neutral-400 mb-0.5">No users found</p>
-            <p className="text-[11px] text-neutral-500">Search by entering a name or username above</p>
+          <div className="py-16 text-center text-neutral-500 px-4">
+            {chattedUsers.length === 0 ? (
+              <>
+                <MessageSquareDashed className="w-9 h-9 mx-auto mb-2.5 opacity-40 text-neutral-400" />
+                <p className="text-xs font-medium text-neutral-300 mb-1">No Chatted Users Found</p>
+                <p className="text-[11px] text-neutral-500 max-w-xs mx-auto">
+                  Only users with whom you have chatted will appear in this search. Start a chat first to search contacts here.
+                </p>
+              </>
+            ) : (
+              <>
+                <User className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                <p className="text-xs font-medium text-neutral-400 mb-0.5">No matching chatted users</p>
+                <p className="text-[11px] text-neutral-500">
+                  No conversation partner matches '{query}'
+                </p>
+              </>
+            )}
           </div>
         )}
       </div>

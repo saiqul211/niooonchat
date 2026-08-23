@@ -199,7 +199,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
         <button
           onClick={() => onNavigate('search')}
           className="p-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-xl text-neutral-300 hover:text-white transition-colors shrink-0 cursor-pointer"
-          title="Find new users"
+          title="Search chatted contacts"
         >
           <MessageSquarePlus className="w-4 h-4" />
         </button>
@@ -299,8 +299,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('search')}
               className="py-2 px-3.5 rounded-xl bg-neutral-100 hover:bg-white text-black text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-md"
             >
-              <MessageSquarePlus className="w-3.5 h-3.5" />
-              <span>Find Users & Start Chat</span>
+              <Search className="w-3.5 h-3.5" />
+              <span>Search Chatted Contacts</span>
             </button>
           </div>
         )}
