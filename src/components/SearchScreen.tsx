@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { PublicProfile } from '../types';
-import { Search, User, MessageCircle, Loader2, MessageSquareDashed } from 'lucide-react';
+import { Search, User, MessageCircle, Loader2, MessageSquareDashed, ArrowRight, AlertCircle } from 'lucide-react';
 
 interface SearchScreenProps {
   onNavigate: (route: string) => void;
@@ -11,6 +11,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
   const [query, setQuery] = useState('');
   const [chattedUsers, setChattedUsers] = useState<PublicProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchingExact, setSearchingExact] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; username?: string } | null>(null);
 
   // Fetch only users with whom the current user has sent or received messages
   const loadChattedUsers = useCallback(async () => {
@@ -25,6 +28,18 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
         setLoading(false);
         return;
       }
+
+      // Fetch current user's profile username to avoid chatting with oneself
+      const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      setCurrentUser({
+        id: user.id,
+        username: myProfile?.username || user.user_metadata?.username,
+      });
 
       // 1. Fetch distinct message pairs involving the current user
       const { data: messages, error: msgErr } = await supabase
@@ -93,9 +108,54 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
     };
   }, [loadChattedUsers]);
 
-  // Filter ONLY within chatted users based on user search query
-  const cleanQuery = query.trim().toLowerCase().replace('@', '');
-  const filteredUsers = cleanQuery
+  // Handle Exact Username Search and Automatic Chat Opening
+  const handleExactSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    const cleanUsername = query.trim().replace(/^@+/, '').toLowerCase();
+    if (!cleanUsername) {
+      setErrorMessage('Please enter an exact username to search.');
+      return;
+    }
+
+    if (currentUser?.username && currentUser.username.toLowerCase() === cleanUsername) {
+      setErrorMessage('You cannot start a direct chat with yourself.');
+      return;
+    }
+
+    setSearchingExact(true);
+    try {
+      // Look up exact username in Supabase database
+      const { data: targetProfile, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, username')
+        .ilike('username', cleanUsername)
+        .maybeSingle();
+
+      if (error || !targetProfile) {
+        setErrorMessage(`No user found with exact username '@${cleanUsername}'. Please verify spelling.`);
+        return;
+      }
+
+      if (targetProfile.id === currentUser?.id) {
+        setErrorMessage('You cannot start a direct chat with yourself.');
+        return;
+      }
+
+      // Exact user found -> automatically navigate directly into chat!
+      setQuery('');
+      onNavigate(`chat?user=${targetProfile.username}`);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'An error occurred while searching for this username.');
+    } finally {
+      setSearchingExact(false);
+    }
+  };
+
+  // Filter ONLY within already chatted users (no random public auto-suggestions)
+  const cleanQuery = query.trim().toLowerCase().replace(/^@+/, '');
+  const filteredChattedUsers = cleanQuery
     ? chattedUsers.filter((u) => {
         const matchUsername = u.username?.toLowerCase().includes(cleanQuery);
         const matchFullName = u.full_name?.toLowerCase().includes(cleanQuery);
@@ -105,28 +165,58 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
 
   return (
     <div className="flex flex-col h-full space-y-3 animate-fadeIn">
-      {/* Search Input Box */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-500">
-          <Search className="w-3.5 h-3.5" />
+      {/* Exact Username Search Form */}
+      <form onSubmit={handleExactSearch} className="space-y-2">
+        <div className="relative flex items-center">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+            <Search className="w-4 h-4" />
+          </div>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (errorMessage) setErrorMessage(null);
+            }}
+            placeholder="Type exact @username and press Search..."
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 pl-10 pr-24 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
+          />
+          <button
+            type="submit"
+            disabled={searchingExact || !query.trim()}
+            className="absolute right-1.5 py-1.5 px-3 rounded-lg bg-neutral-100 hover:bg-white text-black font-semibold text-xs flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95 shadow-sm"
+          >
+            {searchingExact ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <>
+                <span>Chat</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </>
+            )}
+          </button>
         </div>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search chatted users (e.g. @username)..."
-          className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 pl-9 pr-3.5 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
-        />
-      </div>
+        <p className="text-[10px] text-neutral-500 px-1">
+          To chat with someone new, enter their exact username (e.g. <span className="font-mono text-neutral-400">@username</span>) and click <span className="text-neutral-300">Chat</span>. No partial public suggestions will be shown.
+        </p>
+      </form>
 
-      {/* Results Header */}
-      <div className="flex items-center justify-between px-1">
+      {/* Error Message Notice */}
+      {errorMessage && (
+        <div className="p-2.5 rounded-xl bg-red-950/40 border border-red-800/50 flex items-center gap-2 text-red-300 text-xs animate-fadeIn">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+          <span className="leading-tight">{errorMessage}</span>
+        </div>
+      )}
+
+      {/* Chatted Contacts Header */}
+      <div className="flex items-center justify-between px-1 pt-1 border-t border-neutral-900">
         <div className="flex items-center gap-1.5">
           <h3 className="text-xs font-semibold text-neutral-300">
-            {query ? `Search Results` : 'Chatted Contacts'}
+            {query.trim() ? `Matching Chatted Contacts` : 'Chatted Contacts'}
           </h3>
           <span className="text-[10px] text-neutral-500">
-            ({filteredUsers.length}{query ? ` of ${chattedUsers.length}` : ''})
+            ({filteredChattedUsers.length}{query.trim() ? ` of ${chattedUsers.length}` : ''})
           </span>
         </div>
         {loading && <Loader2 className="w-3.5 h-3.5 animate-spin text-neutral-500" />}
@@ -139,8 +229,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
             <Loader2 className="w-6 h-6 animate-spin mb-2" />
             <p className="text-xs">Loading chatted users...</p>
           </div>
-        ) : filteredUsers.length > 0 ? (
-          filteredUsers.map((u) => {
+        ) : filteredChattedUsers.length > 0 ? (
+          filteredChattedUsers.map((u) => {
             const initials = u.full_name
               ? u.full_name
                   .split(' ')
@@ -174,27 +264,27 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
                   className="py-1.5 px-3 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
-                  <span>Chat</span>
+                  <span>Open Chat</span>
                 </button>
               </div>
             );
           })
         ) : (
-          <div className="py-16 text-center text-neutral-500 px-4">
+          <div className="py-14 text-center text-neutral-500 px-4">
             {chattedUsers.length === 0 ? (
               <>
                 <MessageSquareDashed className="w-9 h-9 mx-auto mb-2.5 opacity-40 text-neutral-400" />
-                <p className="text-xs font-medium text-neutral-300 mb-1">No Chatted Users Found</p>
+                <p className="text-xs font-medium text-neutral-300 mb-1">No Chatted Users Yet</p>
                 <p className="text-[11px] text-neutral-500 max-w-xs mx-auto">
-                  Only users with whom you have chatted will appear in this search. Start a chat first to search contacts here.
+                  Enter an exact username above and click Chat to start your first conversation.
                 </p>
               </>
             ) : (
               <>
                 <User className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                <p className="text-xs font-medium text-neutral-400 mb-0.5">No matching chatted users</p>
+                <p className="text-xs font-medium text-neutral-400 mb-0.5">No matching chatted contacts</p>
                 <p className="text-[11px] text-neutral-500">
-                  No conversation partner matches '{query}'
+                  Click the 'Chat' button above to search and start a conversation with '@{query.trim().replace(/^@+/, '')}' directly.
                 </p>
               </>
             )}
@@ -204,3 +294,4 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
     </div>
   );
 };
+
