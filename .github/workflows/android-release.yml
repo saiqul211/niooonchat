@@ -1,0 +1,73 @@
+name: Build and Release Android App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Plugin Dependencies
+        run: npm install
+
+      - name: Prepare Live Remote URL Assets Stub
+        run: |
+          mkdir -p dist
+          echo "<!doctype html><html><head><meta http-equiv='refresh' content='0;url=https://niooonchat.vercel.app'></head><body style='background:#000000'></body></html>" > dist/index.html
+
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
+      - name: Download Standalone Gradle 8.14.3 Distribution
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
+          unzip -q gradle-8.14.3-bin.zip
+
+      - name: Build Android APK (Live URL Wrapper)
+        working-directory: android
+        run: |
+          ../gradle-8.14.3/bin/gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: niooonchat-android-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Niooon Chat Android Release v1.0.${{ github.run_number }}
+          body: |
+            ## Niooon Chat Android Release v1.0.${{ github.run_number }}
+            - Native Capacitor Android Container
+            - Live Remote URL: https://niooonchat.vercel.app
+            - Supabase Realtime & Strict Dark Mode UI
+            - Fixed app startup crash (added missing colors.xml, updated styles, removed FCM crash)
+            - Native Status Bar, Splash Screen, Haptics, Hardware Back Navigation & Safe Network Handling
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
