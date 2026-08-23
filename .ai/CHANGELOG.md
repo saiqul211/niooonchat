@@ -2,6 +2,13 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.3.0] - 2026-08-23
+### Fixed
+- Resolved Android system status bar (notch, battery, network, clock) overlapping and colliding with the application header.
+- Added dedicated `safe-top` insets in `App.tsx` and `ChatScreen.tsx` top headers so controls sit in a dedicated active bar below system indicators.
+- Added `safe-bottom` padding to the bottom navigation bar and chat message input form to prevent collision with Android gesture navigation bars.
+- Configured Android theme `styles.xml` with dark status bar and navigation bar colors.
+
 ## [1.2.0] - 2026-08-23
 ### Added
 - Created complete `.ai/` Project Memory and Intelligence System (`MASTER_RULES.md`, `PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, `DATABASE.md`, `API_CONTRACTS.md`, `DESIGN_SYSTEM.md`, `SECURITY_RULES.md`, `FEATURE_REGISTRY.md`, `CURRENT_TASK.md`, `CHANGELOG.md`).

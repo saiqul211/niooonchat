@@ -9,6 +9,10 @@
     -webkit-touch-callout: none;
     user-select: none;
     -webkit-user-select: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
   }
 
   /* Allow text selection only within message content */
@@ -17,7 +21,7 @@
     -webkit-user-select: text;
   }
 
-  /* Safe Area insets for notch and bottom bar */
+  /* Safe Area insets for notch, status bar, and bottom navigation */
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);
   }
@@ -25,4 +29,13 @@
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+
+  .safe-area-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-area-footer {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+  }
 }
+

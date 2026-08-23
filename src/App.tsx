@@ -188,30 +188,32 @@ export default function App() {
         
         {/* Pinned Top Header Block (Only in main logged-in app screens) */}
         {showAppHeader && (
-          <header className="shrink-0 h-14 bg-black/95 backdrop-blur-md border-b border-neutral-800/80 flex items-center justify-between px-4 z-30 safe-top">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
-                <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
+          <header className="shrink-0 bg-black/95 backdrop-blur-md border-b border-neutral-800/80 flex flex-col z-30 safe-top">
+            <div className="h-14 flex items-center justify-between px-4 w-full">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
+                  <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
+                </div>
+                <div>
+                  <h1 className="text-sm font-bold tracking-tight text-neutral-100 leading-tight">
+                    Niooon Chat
+                  </h1>
+                  <span className="text-[9px] text-neutral-500 block font-mono">
+                    #{currentRoute}
+                  </span>
+                </div>
               </div>
-              <div>
-                <h1 className="text-sm font-bold tracking-tight text-neutral-100 leading-tight">
-                  Niooon Chat
-                </h1>
-                <span className="text-[9px] text-neutral-500 block font-mono">
-                  #{currentRoute}
-                </span>
-              </div>
+              
+              {sessionUser && (
+                <button
+                  onClick={() => navigateTo('profile')}
+                  className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200 hover:border-neutral-500 transition-colors cursor-pointer"
+                  title="View Profile"
+                >
+                  {sessionUser.user_metadata?.full_name?.[0]?.toUpperCase() || 'U'}
+                </button>
+              )}
             </div>
-            
-            {sessionUser && (
-              <button
-                onClick={() => navigateTo('profile')}
-                className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200 hover:border-neutral-500 transition-colors cursor-pointer"
-                title="View Profile"
-              >
-                {sessionUser.user_metadata?.full_name?.[0]?.toUpperCase() || 'U'}
-              </button>
-            )}
           </header>
         )}
 
@@ -260,36 +262,38 @@ export default function App() {
 
         {/* Pinned Bottom Navigation Bar (Only in main logged-in app screens) */}
         {showBottomNav && (
-          <nav className="shrink-0 z-30 w-full bg-black/95 backdrop-blur-xl border-t border-neutral-800 flex items-center justify-around px-4 pt-2 pb-4 safe-bottom">
-            <button
-              onClick={() => navigateTo('home')}
-              className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
-                currentRoute === 'home' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
-              }`}
-            >
-              <Home className="w-5 h-5" strokeWidth={currentRoute === 'home' ? 2.5 : 1.8} />
-              <span className="text-[10px] tracking-wide">Home</span>
-            </button>
-            
-            <button
-              onClick={() => navigateTo('search')}
-              className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
-                currentRoute === 'search' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
-              }`}
-            >
-              <Search className="w-5 h-5" strokeWidth={currentRoute === 'search' ? 2.5 : 1.8} />
-              <span className="text-[10px] tracking-wide">Search</span>
-            </button>
+          <nav className="shrink-0 z-30 w-full bg-black/95 backdrop-blur-xl border-t border-neutral-800 flex flex-col safe-bottom">
+            <div className="flex items-center justify-around px-4 pt-2.5 pb-2.5 w-full">
+              <button
+                onClick={() => navigateTo('home')}
+                className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
+                  currentRoute === 'home' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
+                }`}
+              >
+                <Home className="w-5 h-5" strokeWidth={currentRoute === 'home' ? 2.5 : 1.8} />
+                <span className="text-[10px] tracking-wide">Home</span>
+              </button>
+              
+              <button
+                onClick={() => navigateTo('search')}
+                className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
+                  currentRoute === 'search' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
+                }`}
+              >
+                <Search className="w-5 h-5" strokeWidth={currentRoute === 'search' ? 2.5 : 1.8} />
+                <span className="text-[10px] tracking-wide">Search</span>
+              </button>
 
-            <button
-              onClick={() => navigateTo('profile')}
-              className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
-                currentRoute === 'profile' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
-              }`}
-            >
-              <User className="w-5 h-5" strokeWidth={currentRoute === 'profile' ? 2.5 : 1.8} />
-              <span className="text-[10px] tracking-wide">Profile</span>
-            </button>
+              <button
+                onClick={() => navigateTo('profile')}
+                className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
+                  currentRoute === 'profile' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
+                }`}
+              >
+                <User className="w-5 h-5" strokeWidth={currentRoute === 'profile' ? 2.5 : 1.8} />
+                <span className="text-[10px] tracking-wide">Profile</span>
+              </button>
+            </div>
           </nav>
         )}
       </div>

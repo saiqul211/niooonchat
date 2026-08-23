@@ -208,7 +208,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full py-20 text-neutral-400">
+      <div className="flex flex-col items-center justify-center h-full py-20 text-neutral-400 safe-top safe-bottom">
         <Loader2 className="w-7 h-7 animate-spin text-neutral-500 mb-2" />
         <p className="text-xs">Loading chat...</p>
       </div>
@@ -217,7 +217,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
 
   if (errorMsg || !targetUser) {
     return (
-      <div className="flex flex-col items-center justify-center h-full py-16 px-4 text-center">
+      <div className="flex flex-col items-center justify-center h-full py-16 px-4 text-center safe-top safe-bottom">
         <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-3 text-neutral-500">
           <MessageSquare className="w-6 h-6" />
         </div>
@@ -239,40 +239,42 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
 
   return (
     <div className="flex flex-col h-full bg-black">
-      {/* Top Chat Header */}
-      <div className="h-14 bg-neutral-950 border-b border-neutral-800/80 px-3 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <button
-            onClick={() => onNavigate('home')}
-            className="p-1.5 rounded-lg hover:bg-neutral-900 text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
-            title="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+      {/* Top Chat Header with Safe Area Inset */}
+      <header className="shrink-0 bg-neutral-950 border-b border-neutral-800/80 flex flex-col z-20 safe-top">
+        <div className="h-14 px-3 flex items-center justify-between w-full">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              onClick={() => onNavigate('home')}
+              className="p-1.5 rounded-lg hover:bg-neutral-900 text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
+              title="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
 
-          <div className="relative">
-            <div className="w-9 h-9 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-xs text-neutral-200 shrink-0">
-              {targetInitials}
+            <div className="relative">
+              <div className="w-9 h-9 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-xs text-neutral-200 shrink-0">
+                {targetInitials}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-black rounded-full"></span>
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-black rounded-full"></span>
+
+            <div className="min-w-0">
+              <h3 className="text-xs font-semibold text-neutral-100 truncate leading-tight">
+                {targetUser.full_name}
+              </h3>
+              <p className="text-[10px] font-mono text-neutral-400 truncate">
+                @{targetUser.username}
+              </p>
+            </div>
           </div>
 
-          <div className="min-w-0">
-            <h3 className="text-xs font-semibold text-neutral-100 truncate leading-tight">
-              {targetUser.full_name}
-            </h3>
-            <p className="text-[10px] font-mono text-neutral-400 truncate">
-              @{targetUser.username}
-            </p>
+          {/* Privacy Badge */}
+          <div className="flex items-center gap-1 text-[10px] text-neutral-500 bg-neutral-900/60 border border-neutral-800/60 px-2 py-1 rounded-lg shrink-0">
+            <ShieldCheck className="w-3 h-3 text-emerald-400" />
+            <span>Username Only</span>
           </div>
         </div>
-
-        {/* Privacy Badge */}
-        <div className="flex items-center gap-1 text-[10px] text-neutral-500 bg-neutral-900/60 border border-neutral-800/60 px-2 py-1 rounded-lg shrink-0">
-          <ShieldCheck className="w-3 h-3 text-emerald-400" />
-          <span>Username Only</span>
-        </div>
-      </div>
+      </header>
 
       {/* Message Stream Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 space-y-3 bg-[#0a0a0a]">
@@ -350,7 +352,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
       {/* Message Input Bottom Bar */}
       <form
         onSubmit={handleSendMessage}
-        className="p-2.5 bg-neutral-950 border-t border-neutral-800/80 flex items-center gap-2 shrink-0"
+        className="p-2.5 bg-neutral-950 border-t border-neutral-800/80 flex items-center gap-2 shrink-0 safe-bottom"
       >
         <input
           type="text"

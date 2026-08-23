@@ -121,7 +121,7 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
   };
 
   return (
-    <div className="w-full h-full min-h-[100dvh] flex flex-col justify-between py-6 px-5 safe-top safe-bottom bg-black text-neutral-100 animate-fadeIn">
+    <div className="w-full min-h-full flex-1 flex flex-col justify-between py-6 px-5 safe-top safe-bottom bg-black text-neutral-100 animate-fadeIn">
       {/* Top Header / Back to Welcome */}
       <div className="flex items-center justify-between mb-2">
         <button

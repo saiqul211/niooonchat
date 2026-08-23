@@ -14,7 +14,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onNavigate, sessio
   };
 
   return (
-    <div className="w-full h-full min-h-[100dvh] flex flex-col justify-between py-8 px-5 safe-top safe-bottom bg-black text-neutral-100 animate-fadeIn">
+    <div className="w-full min-h-full flex-1 flex flex-col justify-between py-6 px-5 safe-top safe-bottom bg-black text-neutral-100 animate-fadeIn">
       {/* Top Branding Section */}
       <div className="flex flex-col items-center text-center mt-4">
         {/* App Emblem / Logo */}
