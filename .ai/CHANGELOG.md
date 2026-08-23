@@ -2,6 +2,12 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.5.6] - 2026-08-23
+### Fixed
+- Fixed Capacitor 8 build failure by providing standalone Gradle 8.14.3 runner in GitHub Actions.
+- Aligned `variables.gradle` and build scripts with Capacitor 8 requirements (compileSdkVersion 36, AGP 8.13.0, google-services 4.4.4).
+- Fixed XML namespace conflict in `android/capacitor-cordova-android-plugins/src/main/AndroidManifest.xml`.
+
 ## [1.5.5] - 2026-08-23
 ### Fixed
 - Fixed GitHub Actions Step `Setup Gradle` failure by replacing external action with direct native Gradle Wrapper execution (`./gradlew assembleDebug`).

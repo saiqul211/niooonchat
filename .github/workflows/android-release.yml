@@ -37,11 +37,15 @@ jobs:
           echo "<!doctype html><html><head><meta http-equiv='refresh' content='0;url=https://niooonchat.vercel.app'></head><body style='background:#000000'></body></html>" > dist/index.html
           npx cap sync android
 
+      - name: Download Standalone Gradle 8.14.3 Distribution
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
+          unzip -q gradle-8.14.3-bin.zip
+
       - name: Build Android APK (Live URL Wrapper)
         working-directory: android
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ../gradle-8.14.3/bin/gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
