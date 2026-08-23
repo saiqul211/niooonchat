@@ -2,6 +2,12 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.5.3] - 2026-08-23
+### Fixed
+- Fixed Android build failure caused by non-existent AGP version (`8.13.0` -> `8.7.3`) and Gradle version (`8.14.3` -> `8.11.1`).
+- Replaced mismatched AndroidX dependencies in `variables.gradle` with verified Maven Central versions (compileSdk 34, appcompat 1.7.0, activity 1.9.3, splashscreen 1.0.1).
+- Updated Gradle distribution URL and setup-gradle action to Gradle 8.11.1.
+
 ## [1.5.2] - 2026-08-23
 ### Fixed
 - Fixed GitHub Actions Android release workflow by adopting official `gradle/actions/setup-gradle@v4` action with Gradle 8.14.3.
