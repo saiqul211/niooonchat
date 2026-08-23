@@ -26,4 +26,4 @@ export interface DirectMessage {
   is_read?: boolean;
 }
 
-export type AppRoute = 'home' | 'search' | 'profile' | 'login' | 'signup' | 'chat';
+export type AppRoute = 'welcome' | 'home' | 'search' | 'profile' | 'login' | 'signup' | 'chat';

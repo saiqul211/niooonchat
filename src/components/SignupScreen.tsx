@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { User, Mail, Lock, UserPlus, AlertCircle, Loader2, CheckCircle2, Github } from 'lucide-react';
+import { User, Mail, Lock, UserPlus, AlertCircle, Loader2, CheckCircle2, Github, ArrowLeft } from 'lucide-react';
+import { triggerHaptic } from '../lib/native';
 
 interface SignupScreenProps {
   onSuccess: () => void;
@@ -16,6 +17,11 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  const handleBackToWelcome = () => {
+    triggerHaptic('light');
+    onNavigate('welcome');
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,7 +121,20 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ onSuccess, onNavigat
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto flex flex-col justify-center py-3 px-1 animate-fadeIn">
+    <div className="w-full max-w-sm mx-auto flex flex-col justify-center py-2 px-1 animate-fadeIn">
+      {/* Back to Welcome Navigation */}
+      <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={handleBackToWelcome}
+          className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-100 py-1.5 px-2.5 rounded-lg bg-neutral-900/80 border border-neutral-800 transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>ওয়েলকাম পেজে ফিরুন</span>
+        </button>
+        <span className="text-[10px] text-neutral-500 font-mono">#signup</span>
+      </div>
+
       {/* Header */}
       <div className="text-center mb-4">
         <div className="w-12 h-12 bg-neutral-900 border border-neutral-800 rounded-2xl mx-auto flex items-center justify-center mb-2 shadow-lg">
