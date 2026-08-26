@@ -2,10 +2,10 @@ package com.niooon.chat
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -36,25 +36,31 @@ class MainActivity : AppCompatActivity() {
     private lateinit var nativeBridge: NativeBridge
     private lateinit var webViewManager: WebViewManager
 
-    private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
+    private val fileChooserLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        try {
+            if (::webViewManager.isInitialized) {
+                webViewManager.handleFileChooserResult(result.resultCode, result.data)
+            }
+        } catch (e: Exception) {
+            Log.e("NiooonChat", "Error handling file chooser result: ${e.message}")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Apply theme cleanly before super.onCreate
         setTheme(R.style.AppTheme_NoActionBar)
         super.onCreate(savedInstanceState)
 
         try {
             binding = ActivityMainBinding.inflate(layoutInflater)
             setContentView(binding.root)
-        } catch (e: Exception) {
-            // Safe fallback if inflation fails
-            setContentView(R.layout.activity_main)
+        } catch (e: Throwable) {
+            Log.e("NiooonChat", "Fatal view inflation exception: ${e.message}", e)
+            return
         }
 
         // Strict Dark Mode Theme configuration
         setupSystemBars()
 
-        initLaunchers()
         initBridgeAndServices()
         setupSwipeRefresh()
         setupOfflineRetry()
@@ -79,67 +85,60 @@ class MainActivity : AppCompatActivity() {
             controller.isAppearanceLightStatusBars = false
             controller.isAppearanceLightNavigationBars = false
         } catch (e: Exception) {
-            // Ignore system bars styling on unsupported devices
-        }
-    }
-
-    private fun initLaunchers() {
-        try {
-            fileChooserLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (::webViewManager.isInitialized) {
-                    webViewManager.handleFileChooserResult(result.resultCode, result.data)
-                }
-            }
-        } catch (e: Exception) {
-            // Fallback
+            Log.w("NiooonChat", "Failed to style system bars: ${e.message}")
         }
     }
 
     private fun initBridgeAndServices() {
-        bridgeRouter = BridgeRouter(
-            activity = this,
-            hapticHelper = hapticHelper,
-            shareHelper = shareHelper,
-            downloadHelper = downloadHelper,
-            networkMonitor = NetworkMonitor(this) { /* placeholder */ },
-            onAppReadyListener = {
-                if (::binding.isInitialized) {
-                    binding.layoutLoading.visibility = View.GONE
-                    binding.progressBar.visibility = View.GONE
-                }
-            }
-        )
-
-        nativeBridge = NativeBridge(bridgeRouter)
-
-        webViewManager = WebViewManager(
-            activity = this,
-            binding = binding,
-            webUrlManager = webUrlManager,
-            downloadHelper = downloadHelper,
-            nativeBridge = nativeBridge,
-            fileChooserLauncher = fileChooserLauncher
-        )
-
-        webViewManager.setupWebView { url ->
-            // Page finished callback
-        }
-
-        networkMonitor = NetworkMonitor(this) { isConnected ->
-            runOnUiThread {
-                if (::binding.isInitialized) {
-                    if (isConnected) {
-                        binding.layoutOffline.visibility = View.GONE
-                    } else {
-                        binding.layoutOffline.visibility = View.VISIBLE
+        try {
+            networkMonitor = NetworkMonitor(this) { isConnected ->
+                runOnUiThread {
+                    if (!isFinishing && !isDestroyed) {
+                        if (::binding.isInitialized) {
+                            binding.layoutOffline.visibility = if (isConnected) View.GONE else View.VISIBLE
+                        }
+                        if (::webViewManager.isInitialized) {
+                            webViewManager.dispatchEventToWeb("native:networkChanged", "{\"isConnected\": $isConnected}")
+                        }
                     }
                 }
-                if (::webViewManager.isInitialized) {
-                    webViewManager.dispatchEventToWeb("native:networkChanged", "{\"isConnected\": $isConnected}")
-                }
             }
+
+            bridgeRouter = BridgeRouter(
+                activity = this,
+                hapticHelper = hapticHelper,
+                shareHelper = shareHelper,
+                downloadHelper = downloadHelper,
+                networkMonitor = networkMonitor,
+                onAppReadyListener = {
+                    runOnUiThread {
+                        if (::binding.isInitialized && !isFinishing && !isDestroyed) {
+                            binding.layoutLoading.visibility = View.GONE
+                            binding.progressBar.visibility = View.GONE
+                        }
+                    }
+                }
+            )
+
+            nativeBridge = NativeBridge(bridgeRouter)
+
+            webViewManager = WebViewManager(
+                activity = this,
+                binding = binding,
+                webUrlManager = webUrlManager,
+                downloadHelper = downloadHelper,
+                nativeBridge = nativeBridge,
+                fileChooserLauncher = fileChooserLauncher
+            )
+
+            webViewManager.setupWebView { _ ->
+                // Page finished callback
+            }
+
+            networkMonitor.startMonitoring()
+        } catch (e: Exception) {
+            Log.e("NiooonChat", "Error initializing bridge & services: ${e.message}", e)
         }
-        networkMonitor.startMonitoring()
     }
 
     private fun setupSwipeRefresh() {
@@ -168,20 +167,24 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         } catch (e: Exception) {
-            // Ignore
+            Log.w("NiooonChat", "Error setting up swipe refresh: ${e.message}")
         }
     }
 
     private fun setupOfflineRetry() {
-        binding.btnRetry.setOnClickListener {
-            if (::networkMonitor.isInitialized && networkMonitor.isConnected()) {
-                binding.layoutOffline.visibility = View.GONE
-                binding.layoutLoading.visibility = View.VISIBLE
-                val urlToLoad = binding.webView.url ?: webUrlManager.liveUrl
-                loadAppUrl(urlToLoad)
-            } else {
-                Toast.makeText(this, "Network still unavailable. Please check your connection.", Toast.LENGTH_SHORT).show()
+        try {
+            binding.btnRetry.setOnClickListener {
+                if (::networkMonitor.isInitialized && networkMonitor.isConnected()) {
+                    binding.layoutOffline.visibility = View.GONE
+                    binding.layoutLoading.visibility = View.VISIBLE
+                    val urlToLoad = binding.webView.url ?: webUrlManager.liveUrl
+                    loadAppUrl(urlToLoad)
+                } else {
+                    Toast.makeText(this, "Network still unavailable. Please check your connection.", Toast.LENGTH_SHORT).show()
+                }
             }
+        } catch (e: Exception) {
+            Log.w("NiooonChat", "Error setting up offline retry: ${e.message}")
         }
     }
 
@@ -195,44 +198,61 @@ class MainActivity : AppCompatActivity() {
                         return
                     }
 
-                    binding.webView.evaluateJavascript(
-                        "typeof window.__onAndroidBackPress === 'function' ? window.__onAndroidBackPress() : false"
-                    ) { result ->
-                        val handledByWeb = result == "true"
-                        if (!handledByWeb) {
-                            if (binding.webView.canGoBack()) {
-                                binding.webView.goBack()
-                            } else {
-                                isEnabled = false
-                                onBackPressedDispatcher.onBackPressed()
+                    try {
+                        binding.webView.evaluateJavascript(
+                            "typeof window.__onAndroidBackPress === 'function' ? window.__onAndroidBackPress() : false"
+                        ) { result ->
+                            val handledByWeb = result == "true"
+                            if (!handledByWeb) {
+                                if (binding.webView.canGoBack()) {
+                                    binding.webView.goBack()
+                                } else {
+                                    isEnabled = false
+                                    onBackPressedDispatcher.onBackPressed()
+                                }
                             }
+                        }
+                    } catch (e: Exception) {
+                        if (binding.webView.canGoBack()) {
+                            binding.webView.goBack()
+                        } else {
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
                         }
                     }
                 }
             })
         } catch (e: Exception) {
-            // Fallback
+            Log.w("NiooonChat", "Error setting up back navigation: ${e.message}")
         }
     }
 
     private fun loadAppUrl(url: String) {
-        if (!::binding.isInitialized) return
+        try {
+            if (!::binding.isInitialized) return
 
-        if (::networkMonitor.isInitialized && !networkMonitor.isConnected()) {
-            binding.layoutLoading.visibility = View.GONE
-            binding.layoutOffline.visibility = View.VISIBLE
-            return
+            if (::networkMonitor.isInitialized && !networkMonitor.isConnected()) {
+                binding.layoutLoading.visibility = View.GONE
+                binding.layoutOffline.visibility = View.VISIBLE
+                return
+            }
+            binding.layoutOffline.visibility = View.GONE
+            binding.webView.loadUrl(url)
+        } catch (e: Exception) {
+            Log.e("NiooonChat", "Error loading app URL: ${e.message}", e)
         }
-        binding.layoutOffline.visibility = View.GONE
-        binding.webView.loadUrl(url)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
-        intent.dataString?.let { deepLink ->
-            val targetUrl = webUrlManager.sanitizeTargetUrl(deepLink)
-            loadAppUrl(targetUrl)
+        try {
+            setIntent(intent)
+            intent.dataString?.let { deepLink ->
+                val targetUrl = webUrlManager.sanitizeTargetUrl(deepLink)
+                loadAppUrl(targetUrl)
+            }
+        } catch (e: Exception) {
+            Log.e("NiooonChat", "Error onNewIntent: ${e.message}", e)
         }
     }
 

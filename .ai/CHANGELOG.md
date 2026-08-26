@@ -2,6 +2,15 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.6.4] - 2026-08-26
+### Fixed
+- **Global Application Class & Zero-Crash Resilient Architecture:**
+  - **Custom `NiooonApplication` Class:** Created `NiooonApplication : Application()` with a global `Thread.setDefaultUncaughtExceptionHandler` to catch and prevent OEM-specific fatal crashes.
+  - **ActivityResultLauncher Property Initializer:** Moved `fileChooserLauncher` to a direct property initializer in `MainActivity.kt` ensuring lifecycle compliance before activity creation.
+  - **Zero UninitializedPropertyAccessException Risk:** Initialized `NetworkMonitor` prior to passing into `BridgeRouter`, eliminated all redundant placeholder instances, and wrapped all UI callbacks with `!isFinishing && !isDestroyed`.
+  - **MultiDex & Stable SDK Target:** Enabled `multiDexEnabled true` and set `targetSdk 34` for universal stability across all Android devices (Android 7.0 through Android 15).
+  - **Hardened WebView JS Dispatches:** Wrapped `dispatchEventToWeb` and internal WebView evaluations in defensive try-catches.
+
 ## [1.6.3] - 2026-08-26
 ### Fixed
 - **Complete Android Startup Crash & Adaptive Icon Resolution:**

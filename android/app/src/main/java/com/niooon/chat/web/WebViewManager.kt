@@ -247,11 +247,19 @@ class WebViewManager(
     }
 
     fun dispatchEventToWeb(eventName: String, jsonPayload: String) {
-        activity.runOnUiThread {
-            binding.webView.evaluateJavascript(
-                "if (window.dispatchEvent) { window.dispatchEvent(new CustomEvent('$eventName', { detail: $jsonPayload })); }",
-                null
-            )
+        try {
+            activity.runOnUiThread {
+                try {
+                    binding.webView.evaluateJavascript(
+                        "if (window.dispatchEvent) { window.dispatchEvent(new CustomEvent('$eventName', { detail: $jsonPayload })); }",
+                        null
+                    )
+                } catch (e: Exception) {
+                    // Safe ignore
+                }
+            }
+        } catch (e: Exception) {
+            // Safe ignore
         }
     }
 }
