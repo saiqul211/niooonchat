@@ -2,6 +2,15 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.6.2] - 2026-08-26
+### Fixed
+- **Android App Startup Immediate Crash Resolution:**
+  - **Fixed UninitializedPropertyAccessException:** Reordered component initialization in `MainActivity.kt` so that `BridgeRouter`, `NativeBridge`, and `WebViewManager` are completely initialized prior to starting `NetworkMonitor`.
+  - **Network Callback Safety:** Guarded all background network state callbacks with `::binding.isInitialized` and `::webViewManager.isInitialized` before invoking UI changes or dispatching bridge events.
+  - **Theme Inflation Fix:** Removed conflicting `<item name="android:background">@null</item>` from `AppTheme.NoActionBar` in `styles.xml` which caused Material component inflation failures.
+  - **WebView Hardening:** Added SSL error handling (`onReceivedSslError`) in `WebViewClient` and wrapped all bridge evaluations with safe try-catch blocks.
+  - **Lifecycle Safety:** Added defensive checks in `onResume`, `onPause`, `onDestroy`, and `onBackPressed` callbacks.
+
 ## [1.6.1] - 2026-08-26
 ### Fixed
 - **GitHub Actions Android CI Workflow Fix:**

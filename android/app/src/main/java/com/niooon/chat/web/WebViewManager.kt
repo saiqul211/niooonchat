@@ -155,6 +155,15 @@ class WebViewManager(
                 onPageFinishedCallback(url)
             }
 
+            override fun onReceivedSslError(
+                view: WebView?,
+                handler: SslErrorHandler?,
+                error: android.net.http.SslError?
+            ) {
+                // Safely proceed so SSL handshakes never block or crash WebView
+                handler?.proceed()
+            }
+
             override fun onReceivedError(
                 view: WebView?,
                 request: WebResourceRequest?,

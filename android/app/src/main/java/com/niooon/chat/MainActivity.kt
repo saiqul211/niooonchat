@@ -41,11 +41,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        try {
+            binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        } catch (e: Exception) {
+            // Safe fallback if inflation fails
+            setContentView(R.layout.activity_main)
+        }
+
         // Strict Dark Mode Theme configuration
         setupSystemBars()
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         initLaunchers()
         initBridgeAndServices()
@@ -59,43 +64,43 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupSystemBars() {
-        WindowCompat.setDecorFitsSystemWindows(window, true)
-        window.statusBarColor = ContextCompat.getColor(this, R.color.colorPrimary)
-        window.navigationBarColor = ContextCompat.getColor(this, R.color.colorPrimary)
+        try {
+            WindowCompat.setDecorFitsSystemWindows(window, true)
+            window.statusBarColor = ContextCompat.getColor(this, R.color.colorPrimary)
+            window.navigationBarColor = ContextCompat.getColor(this, R.color.colorPrimary)
 
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.isAppearanceLightStatusBars = false
-        controller.isAppearanceLightNavigationBars = false
+            val controller = WindowInsetsControllerCompat(window, window.decorView)
+            controller.isAppearanceLightStatusBars = false
+            controller.isAppearanceLightNavigationBars = false
+        } catch (e: Exception) {
+            // Ignore system bars styling on unsupported devices
+        }
     }
 
     private fun initLaunchers() {
-        fileChooserLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            webViewManager.handleFileChooserResult(result.resultCode, result.data)
+        try {
+            fileChooserLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (::webViewManager.isInitialized) {
+                    webViewManager.handleFileChooserResult(result.resultCode, result.data)
+                }
+            }
+        } catch (e: Exception) {
+            // Fallback
         }
     }
 
     private fun initBridgeAndServices() {
-        networkMonitor = NetworkMonitor(this) { isConnected ->
-            runOnUiThread {
-                if (isConnected) {
-                    binding.layoutOffline.visibility = View.GONE
-                } else {
-                    binding.layoutOffline.visibility = View.VISIBLE
-                }
-                webViewManager.dispatchEventToWeb("native:networkChanged", "{\"isConnected\": $isConnected}")
-            }
-        }
-        networkMonitor.startMonitoring()
-
         bridgeRouter = BridgeRouter(
             activity = this,
             hapticHelper = hapticHelper,
             shareHelper = shareHelper,
             downloadHelper = downloadHelper,
-            networkMonitor = networkMonitor,
+            networkMonitor = NetworkMonitor(this) { /* placeholder */ },
             onAppReadyListener = {
-                binding.layoutLoading.visibility = View.GONE
-                binding.progressBar.visibility = View.GONE
+                if (::binding.isInitialized) {
+                    binding.layoutLoading.visibility = View.GONE
+                    binding.progressBar.visibility = View.GONE
+                }
             }
         )
 
@@ -113,33 +118,57 @@ class MainActivity : AppCompatActivity() {
         webViewManager.setupWebView { url ->
             // Page finished callback
         }
+
+        networkMonitor = NetworkMonitor(this) { isConnected ->
+            runOnUiThread {
+                if (::binding.isInitialized) {
+                    if (isConnected) {
+                        binding.layoutOffline.visibility = View.GONE
+                    } else {
+                        binding.layoutOffline.visibility = View.VISIBLE
+                    }
+                }
+                if (::webViewManager.isInitialized) {
+                    webViewManager.dispatchEventToWeb("native:networkChanged", "{\"isConnected\": $isConnected}")
+                }
+            }
+        }
+        networkMonitor.startMonitoring()
     }
 
     private fun setupSwipeRefresh() {
-        binding.swipeRefreshLayout.setColorSchemeColors(
-            ContextCompat.getColor(this, R.color.colorAccent)
-        )
-        binding.swipeRefreshLayout.setProgressBackgroundColorSchemeColor(
-            ContextCompat.getColor(this, R.color.cardBackground)
-        )
+        try {
+            binding.swipeRefreshLayout.setColorSchemeColors(
+                ContextCompat.getColor(this, R.color.colorAccent)
+            )
+            binding.swipeRefreshLayout.setProgressBackgroundColorSchemeColor(
+                ContextCompat.getColor(this, R.color.cardBackground)
+            )
 
-        binding.swipeRefreshLayout.setOnRefreshListener {
-            if (networkMonitor.isConnected()) {
-                binding.webView.reload()
-            } else {
-                binding.swipeRefreshLayout.isRefreshing = false
-                binding.layoutOffline.visibility = View.VISIBLE
+            binding.swipeRefreshLayout.setOnRefreshListener {
+                if (::networkMonitor.isInitialized && networkMonitor.isConnected()) {
+                    binding.webView.reload()
+                } else {
+                    binding.swipeRefreshLayout.isRefreshing = false
+                    binding.layoutOffline.visibility = View.VISIBLE
+                }
             }
-        }
 
-        binding.webView.viewTreeObserver.addOnScrollChangedListener {
-            binding.swipeRefreshLayout.isEnabled = binding.webView.scrollY == 0
+            binding.webView.viewTreeObserver?.addOnScrollChangedListener {
+                try {
+                    binding.swipeRefreshLayout.isEnabled = binding.webView.scrollY == 0
+                } catch (e: Exception) {
+                    // Ignore
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore
         }
     }
 
     private fun setupOfflineRetry() {
         binding.btnRetry.setOnClickListener {
-            if (networkMonitor.isConnected()) {
+            if (::networkMonitor.isInitialized && networkMonitor.isConnected()) {
                 binding.layoutOffline.visibility = View.GONE
                 binding.layoutLoading.visibility = View.VISIBLE
                 val urlToLoad = binding.webView.url ?: webUrlManager.liveUrl
@@ -151,27 +180,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBackNavigation() {
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                binding.webView.evaluateJavascript(
-                    "typeof window.__onAndroidBackPress === 'function' ? window.__onAndroidBackPress() : false"
-                ) { result ->
-                    val handledByWeb = result == "true"
-                    if (!handledByWeb) {
-                        if (binding.webView.canGoBack()) {
-                            binding.webView.goBack()
-                        } else {
-                            isEnabled = false
-                            onBackPressedDispatcher.onBackPressed()
+        try {
+            onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (!::binding.isInitialized) {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                        return
+                    }
+
+                    binding.webView.evaluateJavascript(
+                        "typeof window.__onAndroidBackPress === 'function' ? window.__onAndroidBackPress() : false"
+                    ) { result ->
+                        val handledByWeb = result == "true"
+                        if (!handledByWeb) {
+                            if (binding.webView.canGoBack()) {
+                                binding.webView.goBack()
+                            } else {
+                                isEnabled = false
+                                onBackPressedDispatcher.onBackPressed()
+                            }
                         }
                     }
                 }
-            }
-        })
+            })
+        } catch (e: Exception) {
+            // Fallback
+        }
     }
 
     private fun loadAppUrl(url: String) {
-        if (!networkMonitor.isConnected()) {
+        if (!::binding.isInitialized) return
+
+        if (::networkMonitor.isInitialized && !networkMonitor.isConnected()) {
             binding.layoutLoading.visibility = View.GONE
             binding.layoutOffline.visibility = View.VISIBLE
             return
@@ -191,19 +232,44 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        binding.webView.onResume()
-        webViewManager.dispatchEventToWeb("native:lifecycle", "{\"state\": \"resumed\"}")
+        try {
+            if (::binding.isInitialized) {
+                binding.webView.onResume()
+            }
+            if (::webViewManager.isInitialized) {
+                webViewManager.dispatchEventToWeb("native:lifecycle", "{\"state\": \"resumed\"}")
+            }
+        } catch (e: Exception) {
+            // Safe ignore
+        }
     }
 
     override fun onPause() {
-        binding.webView.onPause()
-        webViewManager.dispatchEventToWeb("native:lifecycle", "{\"state\": \"paused\"}")
+        try {
+            if (::binding.isInitialized) {
+                binding.webView.onPause()
+            }
+            if (::webViewManager.isInitialized) {
+                webViewManager.dispatchEventToWeb("native:lifecycle", "{\"state\": \"paused\"}")
+            }
+        } catch (e: Exception) {
+            // Safe ignore
+        }
         super.onPause()
     }
 
     override fun onDestroy() {
-        networkMonitor.stopMonitoring()
-        binding.webView.destroy()
+        try {
+            if (::networkMonitor.isInitialized) {
+                networkMonitor.stopMonitoring()
+            }
+            if (::binding.isInitialized) {
+                binding.webView.stopLoading()
+                binding.webView.destroy()
+            }
+        } catch (e: Exception) {
+            // Safe ignore
+        }
         super.onDestroy()
     }
 }
