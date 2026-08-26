@@ -164,12 +164,12 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
     : chattedUsers;
 
   return (
-    <div className="flex flex-col h-full space-y-3 animate-fadeIn">
+    <div className="flex flex-col h-full space-y-4 animate-fadeIn max-w-2xl lg:max-w-3xl w-full mx-auto">
       {/* Exact Username Search Form */}
-      <form onSubmit={handleExactSearch} className="space-y-2">
+      <form onSubmit={handleExactSearch} className="space-y-2.5">
         <div className="relative flex items-center">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
-            <Search className="w-4 h-4" />
+          <div className="absolute inset-y-0 left-0 pl-3.5 md:pl-4 flex items-center pointer-events-none text-neutral-500">
+            <Search className="w-4 h-4 md:w-4.5 md:h-4.5" />
           </div>
           <input
             type="text"
@@ -178,25 +178,25 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onNavigate }) => {
               setQuery(e.target.value);
               if (errorMessage) setErrorMessage(null);
             }}
-            placeholder="Type exact @username and press Search..."
-            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 pl-10 pr-24 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
+            placeholder="Type exact @username and press Search or Enter..."
+            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 md:py-3.5 pl-10 md:pl-11 pr-24 md:pr-28 text-xs md:text-sm text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors shadow-inner"
           />
           <button
             type="submit"
             disabled={searchingExact || !query.trim()}
-            className="absolute right-1.5 py-1.5 px-3 rounded-lg bg-neutral-100 hover:bg-white text-black font-semibold text-xs flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95 shadow-sm"
+            className="absolute right-1.5 md:right-2 py-1.5 md:py-2 px-3 md:px-4 rounded-lg md:rounded-xl bg-neutral-100 hover:bg-white text-black font-semibold text-xs md:text-sm flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95 shadow-sm"
           >
             {searchingExact ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
             ) : (
               <>
                 <span>Chat</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </>
             )}
           </button>
         </div>
-        <p className="text-[10px] text-neutral-500 px-1">
+        <p className="text-[10px] md:text-xs text-neutral-500 px-1">
           To chat with someone new, enter their exact username (e.g. <span className="font-mono text-neutral-400">@username</span>) and click <span className="text-neutral-300">Chat</span>. No partial public suggestions will be shown.
         </p>
       </form>

@@ -135,7 +135,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onNavigate, onLogo
     : 'Today';
 
   return (
-    <div className="flex flex-col py-2 px-1 animate-fadeIn">
+    <div className="flex flex-col py-2 px-1 animate-fadeIn max-w-2xl w-full mx-auto">
       {/* Profile Card Header */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-900 to-black border border-neutral-800/80 p-5 mb-5 shadow-2xl">
         <div className="flex items-center gap-4">

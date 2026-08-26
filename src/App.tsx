@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Search, User, LogIn, WifiOff, RefreshCw, Sparkles, UserPlus } from 'lucide-react';
+import { Home, Search, User, WifiOff, RefreshCw, Sparkles } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { AppRoute } from './types';
 import { WelcomeScreen } from './components/WelcomeScreen';
@@ -9,12 +9,15 @@ import { ProfileScreen } from './components/ProfileScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { SignupScreen } from './components/SignupScreen';
 import { ChatScreen } from './components/ChatScreen';
+import { DesktopSidebar } from './components/DesktopSidebar';
+import { DesktopEmptyChat } from './components/DesktopEmptyChat';
 import { initNativeFeatures, registerBackHandler, triggerHaptic, getNetworkStatus } from './lib/native';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<AppRoute>('welcome');
   const [chatTargetUser, setChatTargetUser] = useState<string>('');
   const [sessionUser, setSessionUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [isCheckingOnline, setIsCheckingOnline] = useState<boolean>(false);
   const [exitToast, setExitToast] = useState<boolean>(false);
@@ -37,6 +40,22 @@ export default function App() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Fetch profile when session changes
+  useEffect(() => {
+    if (sessionUser) {
+      supabase
+        .from('profiles')
+        .select('full_name, username, avatar_url')
+        .eq('id', sessionUser.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setUserProfile(data);
+        });
+    } else {
+      setUserProfile(null);
+    }
+  }, [sessionUser]);
 
   // Hardware Back Button listener
   useEffect(() => {
@@ -181,56 +200,15 @@ export default function App() {
     );
   }
 
-  return (
-    <div className="fixed inset-0 w-full h-full bg-black flex justify-center overflow-hidden font-sans text-neutral-100 selection:bg-neutral-800">
-      {/* Responsive App Frame - 100% on Mobile, Auto Centered on Larger Displays */}
-      <div className="w-full h-full max-w-md sm:max-w-lg md:max-w-xl bg-black relative flex flex-col overflow-hidden sm:border-x sm:border-neutral-900/80">
-        
-        {/* Pinned Top Header Block (Only in main logged-in app screens) */}
-        {showAppHeader && (
-          <header className="shrink-0 bg-black/95 backdrop-blur-md border-b border-neutral-800/80 flex flex-col z-30 safe-top">
-            <div className="h-14 flex items-center justify-between px-4 w-full">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
-                  <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
-                </div>
-                <div>
-                  <h1 className="text-sm font-bold tracking-tight text-neutral-100 leading-tight">
-                    Niooon Chat
-                  </h1>
-                  <span className="text-[9px] text-neutral-500 block font-mono">
-                    #{currentRoute}
-                  </span>
-                </div>
-              </div>
-              
-              {sessionUser && (
-                <button
-                  onClick={() => navigateTo('profile')}
-                  className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs font-bold text-neutral-200 hover:border-neutral-500 transition-colors cursor-pointer"
-                  title="View Profile"
-                >
-                  {sessionUser.user_metadata?.full_name?.[0]?.toUpperCase() || 'U'}
-                </button>
-              )}
-            </div>
-          </header>
-        )}
-
-        {/* Scrollable Core View Container with strict height bounds */}
-        <main className={`flex-1 min-h-0 bg-[#0a0a0a] overflow-y-auto overflow-x-hidden flex flex-col overscroll-contain ${isAuthScreen || isChatRoom ? 'p-0' : 'p-3.5 sm:p-4'}`}>
+  // Auth Screens Rendering (Welcome, Login, Signup) - Centered Frame on Desktop
+  if (isAuthScreen) {
+    return (
+      <div className="fixed inset-0 w-full h-full bg-black flex items-center justify-center overflow-hidden font-sans text-neutral-100 p-0 md:p-6 lg:p-10 selection:bg-neutral-800">
+        <div className="w-full h-full md:max-w-md lg:max-w-lg md:h-auto md:max-h-[92vh] bg-black md:bg-neutral-950 md:border md:border-neutral-800/80 md:rounded-3xl relative flex flex-col overflow-hidden shadow-2xl shadow-black/80">
           {currentRoute === 'welcome' && (
             <WelcomeScreen
               onNavigate={navigateTo}
               sessionUser={sessionUser}
-            />
-          )}
-          {currentRoute === 'home' && <HomeScreen onNavigate={navigateTo} />}
-          {currentRoute === 'search' && <SearchScreen onNavigate={navigateTo} />}
-          {currentRoute === 'profile' && (
-            <ProfileScreen
-              onNavigate={navigateTo}
-              onLogout={() => navigateTo('welcome')}
             />
           )}
           {currentRoute === 'login' && (
@@ -245,32 +223,129 @@ export default function App() {
               onNavigate={navigateTo}
             />
           )}
-          {currentRoute === 'chat' && (
-            <ChatScreen
-              targetUsername={chatTargetUser}
-              onNavigate={navigateTo}
-            />
-          )}
-        </main>
+        </div>
+      </div>
+    );
+  }
 
-        {/* Hardware Back Exit Toast */}
-        {exitToast && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-neutral-800/90 backdrop-blur-md border border-neutral-700 text-neutral-200 text-xs px-3.5 py-1.5 rounded-full shadow-lg z-50 animate-fadeIn">
-            Press back again to exit
-          </div>
+  // Main Authenticated Application (Desktop, Tablet, Mobile responsive layout)
+  return (
+    <div className="fixed inset-0 w-full h-full bg-black flex overflow-hidden font-sans text-neutral-100 selection:bg-neutral-800">
+      {/* Desktop & Tablet Sidebar (Hidden on Mobile screens < md) */}
+      <div className="hidden md:flex h-full shrink-0">
+        <DesktopSidebar
+          currentRoute={currentRoute}
+          onNavigate={navigateTo}
+          sessionUser={sessionUser}
+          userProfile={userProfile}
+          isOnline={isOnline}
+          onLogout={async () => {
+            await supabase.auth.signOut();
+            navigateTo('welcome');
+          }}
+        />
+      </div>
+
+      {/* Main Workspace Column */}
+      <div className="flex-1 h-full min-w-0 flex flex-col bg-black overflow-hidden relative">
+        {/* Mobile Header (Hidden on md: and above) */}
+        {showAppHeader && (
+          <header className="md:hidden shrink-0 bg-black/95 backdrop-blur-md border-b border-neutral-800/80 flex flex-col z-30 safe-top">
+            <div className="h-13 flex items-center justify-between px-4 w-full">
+              <div className="flex items-center gap-2">
+                <div className="w-6.5 h-6.5 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
+                  <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
+                </div>
+                <div>
+                  <h1 className="text-sm font-bold tracking-tight text-neutral-100 leading-tight">
+                    Niooon Chat
+                  </h1>
+                  <span className="text-[9px] text-neutral-500 block font-mono capitalize">
+                    {currentRoute}
+                  </span>
+                </div>
+              </div>
+              
+              {sessionUser && (
+                <button
+                  onClick={() => navigateTo('profile')}
+                  className="w-7.5 h-7.5 rounded-full bg-neutral-800 border border-neutral-700/80 flex items-center justify-center text-xs font-bold text-neutral-200 hover:border-neutral-500 transition-colors cursor-pointer"
+                  title="View Profile"
+                >
+                  {sessionUser.user_metadata?.full_name?.[0]?.toUpperCase() || 'U'}
+                </button>
+              )}
+            </div>
+          </header>
         )}
 
-        {/* Pinned Bottom Navigation Bar (Only in main logged-in app screens) */}
+        {/* Dynamic Workspace Panes */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          {/* Master-Detail Split on Desktop (lg:), Single-Screen on Mobile & Tablet */}
+          {currentRoute === 'home' || currentRoute === 'chat' ? (
+            <div className="flex-1 h-full flex overflow-hidden">
+              {/* Conversation List Pane (Visible on lg: always, on mobile/tablet only if route is 'home') */}
+              <div
+                className={`h-full flex-col bg-neutral-950/40 p-3 md:p-4 overflow-y-auto ${
+                  currentRoute === 'chat'
+                    ? 'hidden lg:flex lg:w-80 xl:w-96 border-r border-neutral-800/80 shrink-0'
+                    : 'flex flex-1 lg:w-80 xl:w-96 lg:flex-none border-r border-neutral-800/80 shrink-0'
+                }`}
+              >
+                <HomeScreen
+                  onNavigate={navigateTo}
+                  activeUsername={currentRoute === 'chat' ? chatTargetUser : undefined}
+                />
+              </div>
+
+              {/* Chat View Pane (Visible on lg: always, on mobile/tablet only if route is 'chat') */}
+              <div
+                className={`h-full flex-col flex-1 bg-black overflow-hidden ${
+                  currentRoute === 'chat' ? 'flex' : 'hidden lg:flex'
+                }`}
+              >
+                {currentRoute === 'chat' && chatTargetUser ? (
+                  <ChatScreen
+                    targetUsername={chatTargetUser}
+                    onNavigate={navigateTo}
+                    isEmbedded={true}
+                  />
+                ) : (
+                  <DesktopEmptyChat
+                    onNavigate={navigateTo}
+                    onDirectChat={(uname) => navigateTo(`chat?user=${uname}`)}
+                  />
+                )}
+              </div>
+            </div>
+          ) : currentRoute === 'search' ? (
+            <main className="flex-1 min-h-0 bg-[#0a0a0a] overflow-y-auto p-4 md:p-6 lg:p-8">
+              <SearchScreen onNavigate={navigateTo} />
+            </main>
+          ) : currentRoute === 'profile' ? (
+            <main className="flex-1 min-h-0 bg-[#0a0a0a] overflow-y-auto p-4 md:p-6 lg:p-8">
+              <ProfileScreen
+                onNavigate={navigateTo}
+                onLogout={async () => {
+                  await supabase.auth.signOut();
+                  navigateTo('welcome');
+                }}
+              />
+            </main>
+          ) : null}
+        </div>
+
+        {/* Mobile Bottom Navigation Bar (Hidden on md: and above) */}
         {showBottomNav && (
-          <nav className="shrink-0 z-30 w-full bg-black/95 backdrop-blur-xl border-t border-neutral-800 flex flex-col safe-bottom">
+          <nav className="md:hidden shrink-0 z-30 w-full bg-black/95 backdrop-blur-xl border-t border-neutral-800 flex flex-col safe-bottom">
             <div className="flex items-center justify-around px-4 pt-2.5 pb-2.5 w-full">
               <button
                 onClick={() => navigateTo('home')}
                 className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
-                  currentRoute === 'home' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
+                  currentRoute === 'home' || currentRoute === 'chat' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
                 }`}
               >
-                <Home className="w-5 h-5" strokeWidth={currentRoute === 'home' ? 2.5 : 1.8} />
+                <Home className="w-5 h-5" strokeWidth={currentRoute === 'home' || currentRoute === 'chat' ? 2.5 : 1.8} />
                 <span className="text-[10px] tracking-wide">Home</span>
               </button>
               
@@ -296,7 +371,15 @@ export default function App() {
             </div>
           </nav>
         )}
+
+        {/* Hardware Back Exit Toast */}
+        {exitToast && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-neutral-800/90 backdrop-blur-md border border-neutral-700 text-neutral-200 text-xs px-3.5 py-1.5 rounded-full shadow-lg z-50 animate-fadeIn">
+            Press back again to exit
+          </div>
+        )}
       </div>
     </div>
   );
 }
+

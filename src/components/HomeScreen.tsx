@@ -5,6 +5,7 @@ import { MessageSquarePlus, Search, MessageCircle, Loader2, CheckCheck } from 'l
 
 interface HomeScreenProps {
   onNavigate: (route: string) => void;
+  activeUsername?: string;
 }
 
 interface ConversationItem {
@@ -18,7 +19,7 @@ interface ConversationItem {
   avatarInitials: string;
 }
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate, activeUsername }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -240,19 +241,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
             <p className="text-xs">Updating inbox...</p>
           </div>
         ) : filteredConversations.length > 0 ? (
-          filteredConversations.map((chat) => (
-            <div
-              key={chat.partnerId}
-              onClick={() => onNavigate(`chat?user=${chat.partnerUsername}`)}
-              className="bg-neutral-900/50 hover:bg-neutral-900 border border-neutral-800/60 hover:border-neutral-700/80 rounded-xl p-3 flex items-center gap-3 transition-all cursor-pointer active:scale-[0.99]"
-            >
-              {/* Avatar with status */}
-              <div className="relative shrink-0">
-                <div className="w-11 h-11 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-xs text-neutral-200">
-                  {chat.avatarInitials}
+          filteredConversations.map((chat) => {
+            const isSelected = activeUsername?.toLowerCase() === chat.partnerUsername.toLowerCase();
+            return (
+              <div
+                key={chat.partnerId}
+                onClick={() => onNavigate(`chat?user=${chat.partnerUsername}`)}
+                className={`border rounded-xl p-3 flex items-center gap-3 transition-all cursor-pointer active:scale-[0.99] ${
+                  isSelected
+                    ? 'bg-neutral-800 border-neutral-600 shadow-md text-white'
+                    : 'bg-neutral-900/50 hover:bg-neutral-900 border-neutral-800/60 hover:border-neutral-700/80'
+                }`}
+              >
+                {/* Avatar with status */}
+                <div className="relative shrink-0">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-xs ${
+                    isSelected ? 'bg-neutral-700 border border-neutral-500 text-white' : 'bg-neutral-800 border border-neutral-700 text-neutral-200'
+                  }`}>
+                    {chat.avatarInitials}
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-black rounded-full"></span>
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-black rounded-full"></span>
-              </div>
 
               {/* Thread Info */}
               <div className="flex-1 min-w-0">
@@ -285,7 +294,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
                 </div>
               </div>
             </div>
-          ))
+          );
+        })
         ) : (
           <div className="py-16 text-center text-neutral-500">
             <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-2 text-neutral-400">

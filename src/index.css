@@ -37,21 +37,21 @@
     -webkit-user-select: text;
   }
 
-  /* Safe Area insets for notch, status bar, and gesture navigation bar with robust Android fallbacks */
+  /* Safe Area insets for notch, status bar, and gesture navigation bar */
   .safe-top {
-    padding-top: max(env(safe-area-inset-top, 0px), 36px);
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   .safe-bottom {
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .safe-area-header {
-    padding-top: max(env(safe-area-inset-top, 0px), 36px);
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   .safe-area-footer {
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   /* Custom subtle scrollbar for dark theme */

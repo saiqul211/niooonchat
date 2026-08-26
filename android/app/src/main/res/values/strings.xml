@@ -4,4 +4,14 @@
     <string name="title_activity_main">Niooon Chat</string>
     <string name="package_name">com.niooon.chat</string>
     <string name="custom_url_scheme">com.niooon.chat</string>
+    
+    <!-- Remote Live URLs -->
+    <string name="live_remote_url">https://ais-pre-d4dy6vpbz3am3xqgrt7eqq-851050457135.asia-southeast1.run.app</string>
+    <string name="fallback_remote_url">https://niooonchat.vercel.app</string>
+    
+    <!-- Offline and Error Screen -->
+    <string name="offline_title">No Internet Connection</string>
+    <string name="offline_desc">Unable to connect to Niooon Chat. Please check your network and try again.</string>
+    <string name="retry_btn">Retry Connection</string>
 </resources>
+

@@ -6,9 +6,10 @@ import { ArrowLeft, Send, Loader2, Sparkles, Check, CheckCheck, MessageSquare, S
 interface ChatScreenProps {
   targetUsername: string;
   onNavigate: (route: string) => void;
+  isEmbedded?: boolean;
 }
 
-export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNavigate }) => {
+export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNavigate, isEmbedded }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [targetUser, setTargetUser] = useState<PublicProfile | null>(null);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
@@ -240,47 +241,52 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
   return (
     <div className="flex flex-col h-full bg-black">
       {/* Top Chat Header with Safe Area Inset */}
-      <header className="shrink-0 bg-neutral-950 border-b border-neutral-800/80 flex flex-col z-20 safe-top">
-        <div className="h-14 px-3 flex items-center justify-between w-full">
+      <header className="shrink-0 bg-neutral-950/95 backdrop-blur-md border-b border-neutral-800/80 flex flex-col z-20 safe-top">
+        <div className="h-13 px-3 md:px-4 flex items-center justify-between w-full">
           <div className="flex items-center gap-2.5 min-w-0">
-            <button
-              onClick={() => onNavigate('home')}
-              className="p-1.5 rounded-lg hover:bg-neutral-900 text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
-              title="Go back"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
+            {(!isEmbedded || true) && (
+              <button
+                onClick={() => onNavigate('home')}
+                className={`p-1.5 -ml-1 rounded-lg hover:bg-neutral-900 text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer ${
+                  isEmbedded ? 'lg:hidden' : ''
+                }`}
+                title="Go back"
+              >
+                <ArrowLeft className="w-4.5 h-4.5" />
+              </button>
+            )}
 
             <div className="relative">
-              <div className="w-9 h-9 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center font-bold text-xs text-neutral-200 shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700/80 flex items-center justify-center font-bold text-xs text-neutral-200 shrink-0">
                 {targetInitials}
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-black rounded-full"></span>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border-2 border-neutral-950 rounded-full"></span>
             </div>
 
             <div className="min-w-0">
-              <h3 className="text-xs font-semibold text-neutral-100 truncate leading-tight">
+              <h3 className="text-xs md:text-sm font-semibold text-neutral-100 truncate leading-tight">
                 {targetUser.full_name}
               </h3>
-              <p className="text-[10px] font-mono text-neutral-400 truncate">
+              <p className="text-[10px] md:text-xs font-mono text-neutral-400 truncate">
                 @{targetUser.username}
               </p>
             </div>
           </div>
 
           {/* Privacy Badge */}
-          <div className="flex items-center gap-1 text-[10px] text-neutral-500 bg-neutral-900/60 border border-neutral-800/60 px-2 py-1 rounded-lg shrink-0">
-            <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            <span>Username Only</span>
+          <div className="flex items-center gap-1.5 text-[10px] md:text-xs text-neutral-400 bg-neutral-900/80 border border-neutral-800 px-2.5 py-1 rounded-lg shrink-0">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">Encrypted Direct Chat</span>
+            <span className="sm:hidden">Secure</span>
           </div>
         </div>
       </header>
 
       {/* Message Stream Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3.5 space-y-3 bg-[#0a0a0a] overscroll-contain">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3.5 md:p-6 space-y-3 bg-[#0a0a0a] overscroll-contain">
         {/* Chat Security Notice */}
         <div className="text-center my-2">
-          <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800/80 text-[10px] text-neutral-500">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-900/80 border border-neutral-800/80 text-[10px] md:text-xs text-neutral-500">
             <Sparkles className="w-3 h-3 text-emerald-400" />
             <span>Encrypted username-based direct messaging</span>
           </div>
@@ -291,8 +297,8 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
             <div className="w-12 h-12 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto mb-2 text-neutral-400">
               <Send className="w-5 h-5 text-neutral-500" />
             </div>
-            <p className="text-xs font-medium text-neutral-300 mb-0.5">No messages yet</p>
-            <p className="text-[11px] text-neutral-500">
+            <p className="text-xs md:text-sm font-medium text-neutral-300 mb-0.5">No messages yet</p>
+            <p className="text-[11px] md:text-xs text-neutral-500">
               Type a message below to start chatting with @{targetUser.username}
             </p>
           </div>
@@ -312,7 +318,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
                 className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-md selectable-text ${
+                  className={`max-w-[85%] md:max-w-md lg:max-w-xl px-4 py-2.5 rounded-2xl text-xs md:text-sm leading-relaxed break-words shadow-md selectable-text ${
                     isMe
                       ? 'bg-neutral-100 text-black font-medium rounded-br-xs'
                       : 'bg-neutral-900 text-neutral-100 border border-neutral-800 rounded-bl-xs'
@@ -323,7 +329,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
                 
                 {/* Time and Seen Status */}
                 <div className="flex items-center gap-1.5 mt-1 px-1">
-                  <span className="text-[9px] text-neutral-500 font-mono">
+                  <span className="text-[9px] md:text-[10px] text-neutral-500 font-mono">
                     {timeFormatted}
                   </span>
                   {isMe && (
@@ -352,24 +358,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
       {/* Message Input Bottom Bar */}
       <form
         onSubmit={handleSendMessage}
-        className="p-2.5 bg-neutral-950 border-t border-neutral-800/80 flex items-center gap-2 shrink-0 safe-bottom"
+        className="p-2.5 md:p-4 bg-neutral-950 border-t border-neutral-800/80 flex items-center gap-2 shrink-0 safe-bottom"
       >
         <input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          placeholder={`Message @${targetUser.username}...`}
-          className="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 pl-3.5 pr-3.5 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors"
+          placeholder={`Message @${targetUser.username}... (Press Enter to send)`}
+          className="flex-1 bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 md:py-3 pl-3.5 md:pl-4 pr-3.5 md:pr-4 text-xs md:text-sm text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-neutral-700 transition-colors shadow-inner"
         />
         <button
           type="submit"
           disabled={!newMessage.trim() || sending}
-          className="w-9 h-9 rounded-xl bg-neutral-100 hover:bg-white text-black flex items-center justify-center shrink-0 transition-all shadow-md active:scale-95 disabled:opacity-40 cursor-pointer"
+          className="w-9 h-9 md:w-11 md:h-11 rounded-xl bg-neutral-100 hover:bg-white text-black flex items-center justify-center shrink-0 transition-all shadow-md active:scale-95 disabled:opacity-40 cursor-pointer"
         >
           {sending ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
           ) : (
-            <Send className="w-4 h-4 ml-0.5" />
+            <Send className="w-4 h-4 md:w-5 md:h-5 ml-0.5" />
           )}
         </button>
       </form>
