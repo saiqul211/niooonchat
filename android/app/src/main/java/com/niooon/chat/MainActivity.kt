@@ -39,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Apply theme cleanly before super.onCreate
+        setTheme(R.style.AppTheme_NoActionBar)
         super.onCreate(savedInstanceState)
 
         try {
@@ -59,8 +61,12 @@ class MainActivity : AppCompatActivity() {
         setupBackNavigation()
 
         // Load targeted application URL or deep link
-        val initialUrl = webUrlManager.sanitizeTargetUrl(intent?.dataString)
-        loadAppUrl(initialUrl)
+        try {
+            val initialUrl = webUrlManager.sanitizeTargetUrl(intent?.dataString)
+            loadAppUrl(initialUrl)
+        } catch (e: Exception) {
+            loadAppUrl(webUrlManager.liveUrl)
+        }
     }
 
     private fun setupSystemBars() {

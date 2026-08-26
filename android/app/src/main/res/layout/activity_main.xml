@@ -106,17 +106,18 @@
             android:textColor="@color/textSecondary"
             android:textSize="14sp" />
 
-        <com.google.android.material.button.MaterialButton
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnRetry"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:backgroundTint="@color/colorAccent"
+            android:background="@drawable/btn_retry_bg"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
             android:text="@string/retry_btn"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
-            app:cornerRadius="24dp" />
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

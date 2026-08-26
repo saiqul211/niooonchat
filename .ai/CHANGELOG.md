@@ -2,6 +2,14 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.6.3] - 2026-08-26
+### Fixed
+- **Complete Android Startup Crash & Adaptive Icon Resolution:**
+  - **Fixed Adaptive Icon Resource Crash:** Resolved fatal XML resource lookup error in `mipmap-anydpi-v26/ic_launcher.xml` and `ic_launcher_round.xml` where `@color/ic_launcher_background` was requested instead of `@drawable/ic_launcher_background`, causing Android OS launcher to crash on app startup.
+  - **Material Theme Complete Palette:** Injected all required Material Design theme tokens (`colorPrimaryVariant`, `colorSecondary`, `colorSecondaryVariant`, `colorSurface`, `colorOnPrimary`, `colorOnSecondary`, `colorOnSurface`, `colorError`, `colorOnError`) in `styles.xml` to prevent `InflateException` on OEM Android ROMs (MIUI / HyperOS / ColorOS).
+  - **Universal AppCompat Controls:** Swapped `MaterialButton` in `activity_main.xml` for `AppCompatButton` backed by `@drawable/btn_retry_bg.xml` for 100% device compatibility.
+  - **Safe Initialization & Error Boundaries:** Wrapped WebView configuration and JavascriptInterface bindings in `WebViewManager.kt` with comprehensive exception handlers and applied `setTheme(R.style.AppTheme_NoActionBar)` prior to view inflation in `MainActivity.kt`.
+
 ## [1.6.2] - 2026-08-26
 ### Fixed
 - **Android App Startup Immediate Crash Resolution:**

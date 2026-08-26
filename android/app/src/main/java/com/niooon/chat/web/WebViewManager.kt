@@ -33,166 +33,191 @@ class WebViewManager(
 
     @SuppressLint("SetJavaScriptEnabled")
     fun setupWebView(onPageFinishedCallback: (url: String?) -> Unit) {
-        val webView = binding.webView
-        val settings = webView.settings
+        try {
+            val webView = binding.webView
+            val settings = webView.settings
 
-        // Modern Web Configuration
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-        settings.databaseEnabled = true
-        settings.setSupportZoom(false)
-        settings.builtInZoomControls = false
-        settings.displayZoomControls = false
-        settings.loadWithOverviewMode = true
-        settings.useWideViewPort = true
-        settings.allowFileAccess = true
-        settings.allowContentAccess = true
-        settings.mediaPlaybackRequiresUserGesture = false
-        settings.cacheMode = WebSettings.LOAD_DEFAULT
-        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            // Modern Web Configuration
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.databaseEnabled = true
+            settings.setSupportZoom(false)
+            settings.builtInZoomControls = false
+            settings.displayZoomControls = false
+            settings.loadWithOverviewMode = true
+            settings.useWideViewPort = true
+            settings.allowFileAccess = true
+            settings.allowContentAccess = true
+            settings.mediaPlaybackRequiresUserGesture = false
+            settings.cacheMode = WebSettings.LOAD_DEFAULT
 
-        // Custom User-Agent identifier
-        val defaultUA = settings.userAgentString
-        settings.userAgentString = "$defaultUA NiooonChatApp/1.0.0 (Native Android Kotlin)"
-
-        // Attach Native Javascript Interface Bridge
-        webView.addJavascriptInterface(nativeBridge, "AndroidBridge")
-
-        // Handle File Downloads
-        webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
-            downloadHelper.downloadFile(url, userAgent, contentDisposition, mimetype)
-        }
-
-        // WebChromeClient
-        webView.webChromeClient = object : WebChromeClient() {
-            override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                if (newProgress < 100) {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.progressBar.progress = newProgress
-                } else {
-                    binding.progressBar.visibility = View.GONE
-                    binding.swipeRefreshLayout.isRefreshing = false
-                    binding.layoutLoading.visibility = View.GONE
-                }
+            try {
+                settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            } catch (e: Exception) {
+                // Ignore if unsupported
             }
 
-            override fun onPermissionRequest(request: PermissionRequest?) {
-                activity.runOnUiThread {
-                    request?.grant(request.resources)
-                }
+            // Custom User-Agent identifier
+            try {
+                val defaultUA = settings.userAgentString ?: ""
+                settings.userAgentString = "$defaultUA NiooonChatApp/1.0.0 (Native Android Kotlin)"
+            } catch (e: Exception) {
+                // Ignore
             }
 
-            override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback?) {
-                callback?.invoke(origin, true, false)
+            // Attach Native Javascript Interface Bridge
+            try {
+                webView.addJavascriptInterface(nativeBridge, "AndroidBridge")
+            } catch (e: Exception) {
+                // Ignore
             }
 
-            override fun onShowFileChooser(
-                view: WebView?,
-                filePathCallback: ValueCallback<Array<Uri>>?,
-                fileChooserParams: FileChooserParams?
-            ): Boolean {
-                fileUploadCallback?.onReceiveValue(null)
-                fileUploadCallback = filePathCallback
+            // Handle File Downloads
+            webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
+                downloadHelper.downloadFile(url, userAgent, contentDisposition, mimetype)
+            }
 
-                var takePictureIntent: Intent? = null
-                var photoFile: File? = null
-                try {
-                    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                    val storageDir = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-                    photoFile = File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
-                    cameraPhotoPath = photoFile.absolutePath
-
-                    val photoURI = FileProvider.getUriForFile(
-                        activity,
-                        "${activity.applicationContext.packageName}.fileprovider",
-                        photoFile
-                    )
-                    takePictureIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                        putExtra(android.provider.MediaStore.EXTRA_OUTPUT, photoURI)
+            // WebChromeClient
+            webView.webChromeClient = object : WebChromeClient() {
+                override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                    if (newProgress < 100) {
+                        binding.progressBar.visibility = View.VISIBLE
+                        binding.progressBar.progress = newProgress
+                    } else {
+                        binding.progressBar.visibility = View.GONE
+                        binding.swipeRefreshLayout.isRefreshing = false
+                        binding.layoutLoading.visibility = View.GONE
                     }
-                } catch (ex: IOException) {
-                    cameraPhotoPath = null
                 }
 
-                val contentSelectionIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "*/*"
-                    if (fileChooserParams?.acceptTypes != null && fileChooserParams.acceptTypes.isNotEmpty()) {
-                        val firstType = fileChooserParams.acceptTypes[0]
-                        if (firstType.isNotBlank()) {
-                            type = firstType
+                override fun onPermissionRequest(request: PermissionRequest?) {
+                    activity.runOnUiThread {
+                        try {
+                            request?.grant(request.resources)
+                        } catch (e: Exception) {
+                            // Safe ignore
                         }
                     }
-                    putExtra(Intent.EXTRA_ALLOW_MULTIPLE, fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE)
                 }
 
-                val intentArray: Array<Intent?> = if (takePictureIntent != null) arrayOf(takePictureIntent) else emptyArray()
-
-                val chooserIntent = Intent(Intent.ACTION_CHOOSER).apply {
-                    putExtra(Intent.EXTRA_INTENT, contentSelectionIntent)
-                    putExtra(Intent.EXTRA_TITLE, "Select Attachment or Capture Photo")
-                    putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray)
-                }
-
-                fileChooserLauncher.launch(chooserIntent)
-                return true
-            }
-        }
-
-        // WebViewClient
-        webView.webViewClient = object : WebViewClient() {
-            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                super.onPageStarted(view, url, favicon)
-                binding.progressBar.visibility = View.VISIBLE
-                binding.layoutOffline.visibility = View.GONE
-            }
-
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                binding.progressBar.visibility = View.GONE
-                binding.layoutLoading.visibility = View.GONE
-                binding.swipeRefreshLayout.isRefreshing = false
-                onPageFinishedCallback(url)
-            }
-
-            override fun onReceivedSslError(
-                view: WebView?,
-                handler: SslErrorHandler?,
-                error: android.net.http.SslError?
-            ) {
-                // Safely proceed so SSL handshakes never block or crash WebView
-                handler?.proceed()
-            }
-
-            override fun onReceivedError(
-                view: WebView?,
-                request: WebResourceRequest?,
-                error: WebResourceError?
-            ) {
-                super.onReceivedError(view, request, error)
-                if (request?.isForMainFrame == true) {
-                    binding.progressBar.visibility = View.GONE
-                    binding.layoutLoading.visibility = View.GONE
-                    binding.swipeRefreshLayout.isRefreshing = false
-                }
-            }
-
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                val uri = request?.url ?: return false
-                val scheme = uri.scheme ?: return false
-
-                if (scheme == "tel" || scheme == "mailto" || scheme == "sms" || scheme == "whatsapp" || scheme == "intent") {
+                override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback?) {
                     try {
-                        val intent = Intent(Intent.ACTION_VIEW, uri)
-                        activity.startActivity(intent)
-                        return true
+                        callback?.invoke(origin, true, false)
                     } catch (e: Exception) {
-                        return true
+                        // Safe ignore
                     }
                 }
 
-                return false
+                override fun onShowFileChooser(
+                    view: WebView?,
+                    filePathCallback: ValueCallback<Array<Uri>>?,
+                    fileChooserParams: FileChooserParams?
+                ): Boolean {
+                    fileUploadCallback?.onReceiveValue(null)
+                    fileUploadCallback = filePathCallback
+
+                    var takePictureIntent: Intent? = null
+                    var photoFile: File? = null
+                    try {
+                        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                        val storageDir = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                        photoFile = File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
+                        cameraPhotoPath = photoFile.absolutePath
+
+                        val photoURI = FileProvider.getUriForFile(
+                            activity,
+                            "${activity.applicationContext.packageName}.fileprovider",
+                            photoFile
+                        )
+                        takePictureIntent = Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                            putExtra(android.provider.MediaStore.EXTRA_OUTPUT, photoURI)
+                        }
+                    } catch (ex: Exception) {
+                        cameraPhotoPath = null
+                    }
+
+                    val contentSelectionIntent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "*/*"
+                        if (fileChooserParams?.acceptTypes != null && fileChooserParams.acceptTypes.isNotEmpty()) {
+                            val firstType = fileChooserParams.acceptTypes[0]
+                            if (firstType.isNotBlank()) {
+                                type = firstType
+                            }
+                        }
+                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, fileChooserParams?.mode == FileChooserParams.MODE_OPEN_MULTIPLE)
+                    }
+
+                    val intentArray: Array<Intent?> = if (takePictureIntent != null) arrayOf(takePictureIntent) else emptyArray()
+
+                    val chooserIntent = Intent(Intent.ACTION_CHOOSER).apply {
+                        putExtra(Intent.EXTRA_INTENT, contentSelectionIntent)
+                        putExtra(Intent.EXTRA_TITLE, "Select Attachment or Capture Photo")
+                        putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray)
+                    }
+
+                    fileChooserLauncher.launch(chooserIntent)
+                    return true
+                }
             }
+
+            // WebViewClient
+            webView.webViewClient = object : WebViewClient() {
+                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                    super.onPageStarted(view, url, favicon)
+                    binding.progressBar.visibility = View.VISIBLE
+                    binding.layoutOffline.visibility = View.GONE
+                }
+
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    binding.progressBar.visibility = View.GONE
+                    binding.layoutLoading.visibility = View.GONE
+                    binding.swipeRefreshLayout.isRefreshing = false
+                    onPageFinishedCallback(url)
+                }
+
+                override fun onReceivedSslError(
+                    view: WebView?,
+                    handler: SslErrorHandler?,
+                    error: android.net.http.SslError?
+                ) {
+                    // Safely proceed so SSL handshakes never block or crash WebView
+                    handler?.proceed()
+                }
+
+                override fun onReceivedError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
+                ) {
+                    super.onReceivedError(view, request, error)
+                    if (request?.isForMainFrame == true) {
+                        binding.progressBar.visibility = View.GONE
+                        binding.layoutLoading.visibility = View.GONE
+                        binding.swipeRefreshLayout.isRefreshing = false
+                    }
+                }
+
+                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                    val uri = request?.url ?: return false
+                    val scheme = uri.scheme ?: return false
+
+                    if (scheme == "tel" || scheme == "mailto" || scheme == "sms" || scheme == "whatsapp" || scheme == "intent") {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                            activity.startActivity(intent)
+                            return true
+                        } catch (e: Exception) {
+                            return true
+                        }
+                    }
+
+                    return false
+                }
+            }
+        } catch (e: Exception) {
+            // Safe fallback
         }
     }
 
