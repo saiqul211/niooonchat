@@ -2,6 +2,12 @@
 
 All notable changes to the Niooon Chat project will be documented in this file.
 
+## [1.6.1] - 2026-08-26
+### Fixed
+- **GitHub Actions Android CI Workflow Fix:**
+  - Upgraded to `gradle/actions/setup-gradle@v4` with explicit `gradle-version: '8.11.1'`.
+  - Added dynamic Gradle Wrapper generation step to resolve `Invalid or corrupt jarfile gradle-wrapper.jar` build failure.
+
 ## [1.6.0] - 2026-08-26
 ### Added
 - **Desktop & Tablet Responsive Layout & Sidebar:**
