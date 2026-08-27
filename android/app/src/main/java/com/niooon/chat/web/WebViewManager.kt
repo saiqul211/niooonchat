@@ -39,6 +39,16 @@ class WebViewManager(
             val webView = binding.webView
             val settings = webView.settings
 
+            // Hardware Acceleration & Background
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+            webView.setBackgroundColor(0xFF000000.toInt())
+
+            try {
+                WebView.setWebContentsDebuggingEnabled(true)
+            } catch (e: Exception) {
+                // Ignore
+            }
+
             // Modern Web & Storage Configuration
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
@@ -100,6 +110,11 @@ class WebViewManager(
 
             // WebChromeClient
             webView.webChromeClient = object : WebChromeClient() {
+                override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                    android.util.Log.d("NiooonWebConsole", "${consoleMessage?.messageLevel()}: ${consoleMessage?.message()} (line ${consoleMessage?.lineNumber()})")
+                    return true
+                }
+
                 override fun onProgressChanged(view: WebView?, newProgress: Int) {
                     if (newProgress < 100) {
                         binding.progressBar.visibility = View.VISIBLE

@@ -96,7 +96,17 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (!isFinishing && !isDestroyed) {
                         if (::binding.isInitialized) {
-                            binding.layoutOffline.visibility = if (isConnected) View.GONE else View.VISIBLE
+                            if (isConnected) {
+                                binding.layoutOffline.visibility = View.GONE
+                                val currentUrl = binding.webView.url
+                                if (currentUrl.isNullOrBlank() || currentUrl == "about:blank") {
+                                    loadAppUrl(webUrlManager.liveUrl)
+                                }
+                            } else {
+                                if (binding.webView.url.isNullOrBlank() || binding.webView.url == "about:blank") {
+                                    binding.layoutOffline.visibility = View.VISIBLE
+                                }
+                            }
                         }
                         if (::webViewManager.isInitialized) {
                             webViewManager.dispatchEventToWeb("native:networkChanged", "{\"isConnected\": $isConnected}")
@@ -241,12 +251,8 @@ class MainActivity : AppCompatActivity() {
         try {
             if (!::binding.isInitialized) return
 
-            if (::networkMonitor.isInitialized && !networkMonitor.isConnected()) {
-                binding.layoutLoading.visibility = View.GONE
-                binding.layoutOffline.visibility = View.VISIBLE
-                return
-            }
             binding.layoutOffline.visibility = View.GONE
+            binding.layoutLoading.visibility = View.VISIBLE
             binding.webView.loadUrl(url)
         } catch (e: Exception) {
             Log.e("NiooonChat", "Error loading app URL: ${e.message}", e)

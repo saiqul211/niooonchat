@@ -42,11 +42,19 @@ class NetworkMonitor(
     fun isConnected(): Boolean {
         return try {
             val cm = connectivityManager ?: return true
-            val network = cm.activeNetwork ?: return false
-            val capabilities = cm.getNetworkCapabilities(network) ?: return false
-            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            val network = cm.activeNetwork
+            if (network != null) {
+                val capabilities = cm.getNetworkCapabilities(network)
+                if (capabilities != null) {
+                    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                }
+            }
+            @Suppress("DEPRECATION")
+            val activeInfo = cm.activeNetworkInfo
+            @Suppress("DEPRECATION")
+            activeInfo?.isConnected == true
         } catch (e: Exception) {
-            true // Fallback to optimistic online
+            true // Optimistic online fallback
         }
     }
 
