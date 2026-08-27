@@ -48,7 +48,7 @@ class WebViewManager(
                 // Ignore
             }
 
-            // Modern Web & Storage Configuration
+            // Chrome-grade Web & Storage Configuration
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.databaseEnabled = true
@@ -61,25 +61,23 @@ class WebViewManager(
             settings.useWideViewPort = true
             settings.allowFileAccess = true
             settings.allowContentAccess = true
+            settings.allowFileAccessFromFileURLs = true
+            settings.allowUniversalAccessFromFileURLs = true
             settings.mediaPlaybackRequiresUserGesture = false
             settings.cacheMode = WebSettings.LOAD_DEFAULT
+            settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
-            // Enable Cookie & Session Storage
+            // Enable Cookie & Session Storage (Match Chrome)
             try {
                 val cookieManager = CookieManager.getInstance()
                 cookieManager.setAcceptCookie(true)
                 cookieManager.setAcceptThirdPartyCookies(webView, true)
+                CookieManager.setAcceptFileSchemeCookies(true)
             } catch (e: Exception) {
                 // Ignore
             }
 
-            try {
-                settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-            } catch (e: Exception) {
-                // Ignore if unsupported
-            }
-
-            // Custom User-Agent identifier
+            // Modern Chrome Mobile User-Agent
             try {
                 val defaultUA = settings.userAgentString ?: ""
                 settings.userAgentString = "$defaultUA NiooonChatApp/1.0.0 (Native Android Kotlin)"

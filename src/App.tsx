@@ -352,10 +352,10 @@ export default function App() {
               <button
                 onClick={() => navigateTo('home')}
                 className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors cursor-pointer ${
-                  currentRoute === 'home' || currentRoute === 'chat' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
+                  (currentRoute as AppRoute) === 'home' || (currentRoute as AppRoute) === 'chat' ? 'text-neutral-100 font-semibold' : 'text-neutral-500 hover:text-neutral-300'
                 }`}
               >
-                <Home className="w-5 h-5" strokeWidth={currentRoute === 'home' || currentRoute === 'chat' ? 2.5 : 1.8} />
+                <Home className="w-5 h-5" strokeWidth={(currentRoute as AppRoute) === 'home' || (currentRoute as AppRoute) === 'chat' ? 2.5 : 1.8} />
                 <span className="text-[10px] tracking-wide">Home</span>
               </button>
               
