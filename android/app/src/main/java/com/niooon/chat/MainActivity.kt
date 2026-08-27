@@ -252,7 +252,7 @@ class MainActivity : AppCompatActivity() {
             if (!::binding.isInitialized) return
 
             binding.layoutOffline.visibility = View.GONE
-            binding.layoutLoading.visibility = View.VISIBLE
+            binding.progressBar.visibility = View.VISIBLE
             binding.webView.loadUrl(url)
         } catch (e: Exception) {
             Log.e("NiooonChat", "Error loading app URL: ${e.message}", e)

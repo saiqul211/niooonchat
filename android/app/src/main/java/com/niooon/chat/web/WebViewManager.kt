@@ -40,7 +40,6 @@ class WebViewManager(
             val settings = webView.settings
 
             // Hardware Acceleration & Background
-            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
             webView.setBackgroundColor(0xFF000000.toInt())
 
             try {
@@ -238,21 +237,45 @@ class WebViewManager(
                         binding.progressBar.visibility = View.GONE
                         binding.layoutLoading.visibility = View.GONE
                         binding.swipeRefreshLayout.isRefreshing = false
+                        android.util.Log.e("NiooonWebView", "Main frame error: ${error?.description} (${error?.errorCode})")
+                        binding.layoutOffline.visibility = View.VISIBLE
+                    }
+                }
 
-                        // Automatically attempt fallback URL if primary fails
-                        if (!hasAttemptedFallback && webUrlManager.fallbackUrl.isNotBlank()) {
-                            hasAttemptedFallback = true
-                            webView.loadUrl(webUrlManager.fallbackUrl)
-                        } else {
-                            binding.layoutOffline.visibility = View.VISIBLE
-                        }
+                @Suppress("DEPRECATION")
+                override fun onReceivedError(
+                    view: WebView?,
+                    errorCode: Int,
+                    description: String?,
+                    failingUrl: String?
+                ) {
+                    super.onReceivedError(view, errorCode, description, failingUrl)
+                    binding.progressBar.visibility = View.GONE
+                    binding.layoutLoading.visibility = View.GONE
+                    binding.swipeRefreshLayout.isRefreshing = false
+                    android.util.Log.e("NiooonWebView", "Legacy error: $description ($errorCode) for $failingUrl")
+                    if (failingUrl?.contains("niooonchat.vercel.app") == true) {
+                        binding.layoutOffline.visibility = View.VISIBLE
                     }
                 }
 
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                     val uri = request?.url ?: return false
-                    val scheme = uri.scheme ?: return false
+                    return handleUrlNavigation(uri)
+                }
 
+                @Suppress("DEPRECATION")
+                override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                    if (url.isNullOrBlank()) return false
+                    return try {
+                        handleUrlNavigation(Uri.parse(url))
+                    } catch (e: Exception) {
+                        false
+                    }
+                }
+
+                private fun handleUrlNavigation(uri: Uri): Boolean {
+                    val scheme = uri.scheme ?: return false
                     if (scheme == "tel" || scheme == "mailto" || scheme == "sms" || scheme == "whatsapp" || scheme == "intent") {
                         try {
                             val intent = Intent(Intent.ACTION_VIEW, uri)
@@ -262,7 +285,6 @@ class WebViewManager(
                             return true
                         }
                     }
-
                     return false
                 }
             }

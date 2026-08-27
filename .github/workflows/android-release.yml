@@ -54,7 +54,7 @@ jobs:
           body: |
             ## Niooon Chat Native Android Release v1.0.${{ github.run_number }}
             - 100% Pure Native Android (Kotlin) Architecture (Capacitor Removed)
-            - Live Remote URL: https://ais-pre-d4dy6vpbz3am3xqgrt7eqq-851050457135.asia-southeast1.run.app
+            - Live Production URL: https://niooonchat.vercel.app
             - Fallback Remote URL: https://niooonchat.vercel.app
             - Native AndroidBridge Javascript Interface (Haptics, Network, Status Bar, Share)
             - SwipeRefreshLayout, Fullscreen Dark Splash & Offline Retry State
