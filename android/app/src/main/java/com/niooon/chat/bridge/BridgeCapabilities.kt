@@ -16,6 +16,7 @@ object BridgeCapabilities {
     const val CAPABILITY_NOTIFICATIONS = "notifications"
     const val CAPABILITY_TOAST = "toast"
     const val CAPABILITY_APP_LIFECYCLE = "appLifecycle"
+    const val CAPABILITY_CALLING = "calling"
 
     val ALL_CAPABILITIES = listOf(
         CAPABILITY_HAPTICS,
@@ -27,7 +28,8 @@ object BridgeCapabilities {
         CAPABILITY_STATUS_BAR,
         CAPABILITY_NOTIFICATIONS,
         CAPABILITY_TOAST,
-        CAPABILITY_APP_LIFECYCLE
+        CAPABILITY_APP_LIFECYCLE,
+        CAPABILITY_CALLING
     )
 
     fun hasCapability(capability: String): Boolean {

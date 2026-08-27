@@ -14,3 +14,4 @@
 | `notifications` | AndroidX Notification Channels | Web `Notification.requestPermission()` |
 | `toast` | Android `Toast.makeText` | UI toast components |
 | `appLifecycle` | Activity `onResume` / `onPause` | `visibilitychange` event |
+| `calling` | `CallActivity` + `CallManager` + `AudioManager` | `WebCallOverlay` + `MediaStream` + Web Audio Ringers |

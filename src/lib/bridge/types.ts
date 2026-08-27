@@ -15,7 +15,8 @@ export type NativeCapability =
   | 'statusBar'
   | 'notifications'
   | 'toast'
-  | 'appLifecycle';
+  | 'appLifecycle'
+  | 'calling';
 
 export interface RuntimeInfo {
   platform: PlatformType;
@@ -34,6 +35,21 @@ export interface BridgeResponse<T = unknown> {
   version: number;
 }
 
+export interface NativeCallState {
+  callId: string;
+  targetUserId: string;
+  targetUserName: string;
+  targetUsername: string;
+  callType: 'audio' | 'video';
+  isIncoming: boolean;
+  status: 'idle' | 'outgoing' | 'ringing' | 'connecting' | 'connected' | 'ended' | 'rejected' | 'missed';
+  durationSeconds: number;
+  isMicMuted: boolean;
+  isSpeakerphoneOn: boolean;
+  isVideoMuted: boolean;
+  isFrontCamera: boolean;
+}
+
 export interface NativeBridgeGlobal {
   getRuntimeInfo?: () => string;
   hasCapability?: (capability: string) => boolean;
@@ -45,6 +61,12 @@ export interface NativeBridgeGlobal {
   shareText?: (title: string, text: string) => string;
   setStatusBarColor?: (colorHex: string, darkIcons: boolean) => string;
   startDownload?: (url: string, mimeType?: string) => string;
+  startAudioCall?: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string) => string;
+  startVideoCall?: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string) => string;
+  handleIncomingCall?: (callId: string, callerId: string, callerName: string, callerUsername: string, callerAvatar: string | undefined, callType: string) => string;
+  acceptCall?: (callId: string) => string;
+  rejectCall?: (callId: string) => string;
+  endCall?: (callId: string) => string;
 }
 
 declare global {

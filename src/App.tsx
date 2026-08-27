@@ -11,6 +11,8 @@ import { SignupScreen } from './components/SignupScreen';
 import { ChatScreen } from './components/ChatScreen';
 import { DesktopSidebar } from './components/DesktopSidebar';
 import { DesktopEmptyChat } from './components/DesktopEmptyChat';
+import { WebCallOverlay } from './components/WebCallOverlay';
+import { CallManagerService } from './lib/callManager';
 import { initNativeFeatures, registerBackHandler, triggerHaptic, getNetworkStatus } from './lib/native';
 
 export default function App() {
@@ -46,11 +48,19 @@ export default function App() {
     if (sessionUser) {
       supabase
         .from('profiles')
-        .select('full_name, username, avatar_url')
+        .select('id, full_name, username, avatar_url')
         .eq('id', sessionUser.id)
         .maybeSingle()
         .then(({ data }) => {
-          if (data) setUserProfile(data);
+          if (data) {
+            setUserProfile(data);
+            CallManagerService.init(sessionUser.id, {
+              id: sessionUser.id,
+              fullName: data.full_name,
+              username: data.username,
+              avatarUrl: data.avatar_url,
+            });
+          }
         });
     } else {
       setUserProfile(null);
@@ -378,6 +388,9 @@ export default function App() {
             Press back again to exit
           </div>
         )}
+
+        {/* Global Web Call Overlay Modal */}
+        <WebCallOverlay />
       </div>
     </div>
   );

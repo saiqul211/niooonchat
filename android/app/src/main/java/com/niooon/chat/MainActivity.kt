@@ -14,6 +14,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.niooon.chat.bridge.BridgeRouter
 import com.niooon.chat.bridge.NativeBridge
 import com.niooon.chat.databinding.ActivityMainBinding
+import com.niooon.chat.features.calling.CallManager
 import com.niooon.chat.features.downloads.DownloadHelper
 import com.niooon.chat.features.haptics.HapticHelper
 import com.niooon.chat.features.network.NetworkMonitor
@@ -121,6 +122,15 @@ class MainActivity : AppCompatActivity() {
             )
 
             nativeBridge = NativeBridge(bridgeRouter)
+
+            CallManager.init(this)
+            CallManager.webEventDispatcher = { eventName, payloadJson ->
+                runOnUiThread {
+                    if (::webViewManager.isInitialized && !isFinishing && !isDestroyed) {
+                        webViewManager.dispatchEventToWeb(eventName, payloadJson)
+                    }
+                }
+            }
 
             webViewManager = WebViewManager(
                 activity = this,

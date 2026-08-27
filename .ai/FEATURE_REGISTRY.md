@@ -44,7 +44,17 @@
 - `[✓]` User Status Bio Display
 - `[✓]` Safe Logout Action Button
 
-## 6. System Architecture & Project Management
+## 6. Audio & Video Calling System (Dual-Platform Web + Android)
+- `[✓]` Native Android Audio & Video Calling Activity (`CallActivity`)
+- `[✓]` Native Audio Routing (`AudioManager`, Earpiece/Speakerphone, Bluetooth SCO)
+- `[✓]` Proximity Sensor Auto-Screen Off during voice calls
+- `[✓]` Incoming & Outgoing Ringtone / Vibration with High-Priority FullScreen Notification
+- `[✓]` Web Call Overlay (`WebCallOverlay`) with in-browser WebRTC fallback
+- `[✓]` Dual-Platform Bridge Methods (`startAudioCall`, `startVideoCall`, `acceptCall`, `rejectCall`, `endCall`)
+- `[✓]` Supabase Realtime Call Signaling Synchronizer (`CallManagerService`)
+- `[✓]` Chat Header Call Action Buttons (Voice Call & Video Call)
+
+## 7. System Architecture & Project Management
 - `[✓]` Granular Deep-Linking Hash Router
 - `[✓]` Strict Dark Mode UI
 - `[✓]` 100% English-Only UI Strings & Labels

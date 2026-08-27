@@ -7,8 +7,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     
-    <!-- Camera, Audio & Media Permissions (for attachments & voice calls) -->
+    <!-- Camera, Audio & Media Permissions (for attachments & voice/video calls) -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
@@ -80,6 +85,18 @@
             </intent-filter>
 
         </activity>
+
+        <!-- Native Audio & Video Calling Activity -->
+        <activity
+            android:name=".features.calling.CallActivity"
+            android:label="Niooon Call"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:exported="false"
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout" />
 
         <!-- FileProvider for photo uploads and file picker camera capture -->
         <provider

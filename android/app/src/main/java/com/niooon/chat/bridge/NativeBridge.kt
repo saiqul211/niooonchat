@@ -56,4 +56,34 @@ class NativeBridge(private val router: BridgeRouter) {
     fun startDownload(url: String, mimeType: String?): String {
         return router.handleDownload(url, null, null, mimeType)
     }
+
+    @JavascriptInterface
+    fun startAudioCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?): String {
+        return router.handleStartAudioCall(targetUserId, targetUserName, targetUsername, targetUserAvatar)
+    }
+
+    @JavascriptInterface
+    fun startVideoCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?): String {
+        return router.handleStartVideoCall(targetUserId, targetUserName, targetUsername, targetUserAvatar)
+    }
+
+    @JavascriptInterface
+    fun handleIncomingCall(callId: String, callerId: String, callerName: String, callerUsername: String, callerAvatar: String?, callType: String): String {
+        return router.handleIncomingCall(callId, callerId, callerName, callerUsername, callerAvatar, callType)
+    }
+
+    @JavascriptInterface
+    fun acceptCall(callId: String): String {
+        return router.handleAcceptCall(callId)
+    }
+
+    @JavascriptInterface
+    fun rejectCall(callId: String): String {
+        return router.handleRejectCall(callId)
+    }
+
+    @JavascriptInterface
+    fun endCall(callId: String): String {
+        return router.handleEndCall(callId)
+    }
 }

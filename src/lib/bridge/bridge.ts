@@ -161,4 +161,94 @@ export const NativeBridgeClient = {
       window.removeEventListener('popstate', onPopState);
     };
   },
+
+  /**
+   * Start Native Audio Call via Bridge
+   */
+  startAudioCall: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string) => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.startAudioCall) {
+      try {
+        window.AndroidBridge.startAudioCall(targetUserId, targetUserName, targetUsername, targetUserAvatar);
+        return true;
+      } catch (e) {
+        console.error('Error initiating native audio call:', e);
+      }
+    }
+    return false;
+  },
+
+  /**
+   * Start Native Video Call via Bridge
+   */
+  startVideoCall: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string) => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.startVideoCall) {
+      try {
+        window.AndroidBridge.startVideoCall(targetUserId, targetUserName, targetUsername, targetUserAvatar);
+        return true;
+      } catch (e) {
+        console.error('Error initiating native video call:', e);
+      }
+    }
+    return false;
+  },
+
+  /**
+   * Handle incoming call on Android Native
+   */
+  handleIncomingCall: (callId: string, callerId: string, callerName: string, callerUsername: string, callerAvatar: string | undefined, callType: 'audio' | 'video') => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.handleIncomingCall) {
+      try {
+        window.AndroidBridge.handleIncomingCall(callId, callerId, callerName, callerUsername, callerAvatar, callType);
+        return true;
+      } catch (e) {
+        console.error('Error passing incoming call to native:', e);
+      }
+    }
+    return false;
+  },
+
+  /**
+   * Accept Active Call via Bridge
+   */
+  acceptCall: (callId: string) => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.acceptCall) {
+      try {
+        window.AndroidBridge.acceptCall(callId);
+        return true;
+      } catch (e) {
+        // Safe catch
+      }
+    }
+    return false;
+  },
+
+  /**
+   * Reject Call via Bridge
+   */
+  rejectCall: (callId: string) => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.rejectCall) {
+      try {
+        window.AndroidBridge.rejectCall(callId);
+        return true;
+      } catch (e) {
+        // Safe catch
+      }
+    }
+    return false;
+  },
+
+  /**
+   * End Call via Bridge
+   */
+  endCall: (callId: string) => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.endCall) {
+      try {
+        window.AndroidBridge.endCall(callId);
+        return true;
+      } catch (e) {
+        // Safe catch
+      }
+    }
+    return false;
+  },
 };

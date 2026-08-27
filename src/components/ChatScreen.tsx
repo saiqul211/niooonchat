@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { PublicProfile, DirectMessage } from '../types';
-import { ArrowLeft, Send, Loader2, Sparkles, Check, CheckCheck, MessageSquare, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Sparkles, Check, CheckCheck, MessageSquare, ShieldCheck, Phone, Video } from 'lucide-react';
+import { CallManagerService } from '../lib/callManager';
 
 interface ChatScreenProps {
   targetUsername: string;
@@ -207,6 +208,32 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
     }
   };
 
+  const handleStartAudioCall = () => {
+    if (!targetUser) return;
+    CallManagerService.startCall(
+      {
+        id: targetUser.id,
+        fullName: targetUser.full_name,
+        username: targetUser.username,
+        avatarUrl: targetUser.avatar_url,
+      },
+      'audio'
+    );
+  };
+
+  const handleStartVideoCall = () => {
+    if (!targetUser) return;
+    CallManagerService.startCall(
+      {
+        id: targetUser.id,
+        fullName: targetUser.full_name,
+        username: targetUser.username,
+        avatarUrl: targetUser.avatar_url,
+      },
+      'video'
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 text-neutral-400 safe-top safe-bottom">
@@ -273,11 +300,30 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ targetUsername, onNaviga
             </div>
           </div>
 
-          {/* Privacy Badge */}
-          <div className="flex items-center gap-1.5 text-[10px] md:text-xs text-neutral-400 bg-neutral-900/80 border border-neutral-800 px-2.5 py-1 rounded-lg shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">Encrypted Direct Chat</span>
-            <span className="sm:hidden">Secure</span>
+          {/* Call Action Buttons & Privacy Badge */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              id="btn-chat-audio-call"
+              onClick={handleStartAudioCall}
+              className="p-2 rounded-xl bg-neutral-900/90 border border-neutral-800 hover:border-neutral-700 text-neutral-300 hover:text-white hover:bg-neutral-800 transition active:scale-95 cursor-pointer flex items-center justify-center"
+              title="Voice Call"
+            >
+              <Phone className="w-4 h-4 text-emerald-400" />
+            </button>
+
+            <button
+              id="btn-chat-video-call"
+              onClick={handleStartVideoCall}
+              className="p-2 rounded-xl bg-neutral-900/90 border border-neutral-800 hover:border-neutral-700 text-neutral-300 hover:text-white hover:bg-neutral-800 transition active:scale-95 cursor-pointer flex items-center justify-center"
+              title="Video Call"
+            >
+              <Video className="w-4 h-4 text-blue-400" />
+            </button>
+
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] md:text-xs text-neutral-400 bg-neutral-900/80 border border-neutral-800 px-2.5 py-1.5 rounded-lg shrink-0">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Encrypted</span>
+            </div>
           </div>
         </div>
       </header>
