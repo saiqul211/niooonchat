@@ -31,16 +31,20 @@ class WebViewManager(
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
     private var cameraPhotoPath: String? = null
 
+    private var hasAttemptedFallback = false
+
     @SuppressLint("SetJavaScriptEnabled")
     fun setupWebView(onPageFinishedCallback: (url: String?) -> Unit) {
         try {
             val webView = binding.webView
             val settings = webView.settings
 
-            // Modern Web Configuration
+            // Modern Web & Storage Configuration
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.databaseEnabled = true
+            settings.loadsImagesAutomatically = true
+            settings.javaScriptCanOpenWindowsAutomatically = true
             settings.setSupportZoom(false)
             settings.builtInZoomControls = false
             settings.displayZoomControls = false
@@ -50,6 +54,15 @@ class WebViewManager(
             settings.allowContentAccess = true
             settings.mediaPlaybackRequiresUserGesture = false
             settings.cacheMode = WebSettings.LOAD_DEFAULT
+
+            // Enable Cookie & Session Storage
+            try {
+                val cookieManager = CookieManager.getInstance()
+                cookieManager.setAcceptCookie(true)
+                cookieManager.setAcceptThirdPartyCookies(webView, true)
+            } catch (e: Exception) {
+                // Ignore
+            }
 
             try {
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
@@ -72,6 +85,14 @@ class WebViewManager(
                 // Ignore
             }
 
+            // Safe UI Loading Timeout (Max 3.5s so user is never blocked)
+            binding.root.postDelayed({
+                if (!activity.isFinishing && !activity.isDestroyed) {
+                    binding.layoutLoading.visibility = View.GONE
+                    binding.progressBar.visibility = View.GONE
+                }
+            }, 3500)
+
             // Handle File Downloads
             webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
                 downloadHelper.downloadFile(url, userAgent, contentDisposition, mimetype)
@@ -93,7 +114,12 @@ class WebViewManager(
                 override fun onPermissionRequest(request: PermissionRequest?) {
                     activity.runOnUiThread {
                         try {
-                            request?.grant(request.resources)
+                            val requestedResources = request?.resources ?: arrayOf(
+                                PermissionRequest.RESOURCE_AUDIO_CAPTURE,
+                                PermissionRequest.RESOURCE_VIDEO_CAPTURE,
+                                PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID
+                            )
+                            request?.grant(requestedResources)
                         } catch (e: Exception) {
                             // Safe ignore
                         }
@@ -173,6 +199,7 @@ class WebViewManager(
                     super.onPageFinished(view, url)
                     binding.progressBar.visibility = View.GONE
                     binding.layoutLoading.visibility = View.GONE
+                    binding.layoutOffline.visibility = View.GONE
                     binding.swipeRefreshLayout.isRefreshing = false
                     onPageFinishedCallback(url)
                 }
@@ -196,6 +223,14 @@ class WebViewManager(
                         binding.progressBar.visibility = View.GONE
                         binding.layoutLoading.visibility = View.GONE
                         binding.swipeRefreshLayout.isRefreshing = false
+
+                        // Automatically attempt fallback URL if primary fails
+                        if (!hasAttemptedFallback && webUrlManager.fallbackUrl.isNotBlank()) {
+                            hasAttemptedFallback = true
+                            webView.loadUrl(webUrlManager.fallbackUrl)
+                        } else {
+                            binding.layoutOffline.visibility = View.VISIBLE
+                        }
                     }
                 }
 

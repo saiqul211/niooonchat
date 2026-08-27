@@ -17,6 +17,7 @@ import kotlin.concurrent.thread
 object ZegoNativeHelper {
 
     private const val TAG = "ZegoNativeHelper"
+    const val ZEGO_APP_ID: Long = 1253975777L
     private const val SUPABASE_EDGE_FUNCTION_URL = "https://bjwzqafnspaeuwgnxnyn.supabase.co/functions/v1/zego-token"
     private const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqd3pxYWZuc3BhZXV3Z254bnluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxMjA1MTIsImV4cCI6MjEwMjY5NjUxMn0.zyNh80e-JPCqSgPiIuwSnfYCOuZM4XvQatf4fBbWB2s"
 

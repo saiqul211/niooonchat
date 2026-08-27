@@ -1,21 +1,20 @@
 # CURRENT TASK STATE
 
-- **Task Name:** ZEGOCLOUD Calling Integration + Supabase Edge Functions + Android/Web Synchronization
-- **Status:** Fully Deployed to Supabase Live, Tested & Synced to GitHub
+- **Task Name:** Android WebView Loading Optimization & ZEGOCLOUD App ID Verification
+- **Status:** Fully Implemented, Verified & Synced to GitHub
 
 ## Accomplishments
-1. **Live Supabase Edge Function (`/functions/v1/zego-token`)**:
-   - Deployed directly to Supabase Project `bjwzqafnspaeuwgnxnyn` (Status: `ACTIVE`, Version 2).
-   - Configured secure server secrets: `ZEGO_APP_ID=1253975777` & `ZEGO_SERVER_SECRET=f818dcba886ae4b8f401a94a3e8878da`.
-   - Verified live HTTP 200 response returning authenticated ZEGOCLOUD RTC access tokens.
-2. **ZEGOCLOUD RTC Calling System**:
-   - Integrated `zego-express-engine-webrtc` on the Web client (`src/lib/zegoService.ts` and `src/lib/callManager.ts`).
-   - Integrated ZEGOCLOUD token resolution on Android (`ZegoNativeHelper.kt`).
-3. **Web Calling UI (`WebCallOverlay.tsx`)**:
-   - Rendered real-time remote and local streams, ZEGOCLOUD HD indicators, PIP layout, and full media controls.
-4. **Android Calling Architecture (`CallActivity.kt`, `CallManager.kt`, `ZegoNativeHelper.kt`)**:
-   - Integrated native calling session management with ZEGOCLOUD RTC signaling and Supabase Edge Function token provider.
-5. **Continuous GitHub Sync & CI/CD**:
-   - Clean git synchronization to `saiqul211/niooonchat` on branch `main` with GitHub Actions APK builder.
+1. **Android WebView Loading & Resilience Fix**:
+   - Updated `strings.xml` to set `live_remote_url` directly to `https://niooonchat.vercel.app` with `ais-pre-...` preview fallback.
+   - Enhanced `WebViewManager.kt` with modern DOM storage, database access, image loading, JavaScript window opening, and explicit `CookieManager` cookie/session handling.
+   - Implemented automatic network error recovery: automatically fails over to fallback remote URL if the primary host is unreachable.
+   - Added a safe 3.5s maximum loading timeout on `layoutLoading` so users never get stuck on a splash screen.
+   - Auto-granted WebRTC audio/video capture permissions (`RESOURCE_AUDIO_CAPTURE`, `RESOURCE_VIDEO_CAPTURE`, `RESOURCE_PROTECTED_MEDIA_ID`).
+2. **ZEGOCLOUD App ID (1253975777) Verification**:
+   - Confirmed `ZEGO_APP_ID = 1253975777L` configured in `ZegoNativeHelper.kt`.
+   - Confirmed `ZEGO_APP_ID = 1253975777` deployed to live Supabase Edge Function (`/functions/v1/zego-token`).
+   - Confirmed `ZEGO_APP_ID = 1253975777` in web RTC client (`src/lib/zegoService.ts`).
+3. **Continuous GitHub Sync & CI/CD**:
+   - Clean git synchronization to `saiqul211/niooonchat` on branch `main`.
 
 
