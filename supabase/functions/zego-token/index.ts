@@ -1,7 +1,5 @@
-// Follow this setup guide to integrate the Deno Edge Function with Supabase:
-// https://supabase.com/docs/guides/functions
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// Supabase Edge Function: ZEGOCLOUD RTC Token Generator
+// Uses native Deno runtime built-in APIs
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -101,7 +99,7 @@ async function generateZegoToken(
   return "04" + base64Token;
 }
 
-serve(async (req) => {
+Deno.serve(async (req: Request) => {
   // Handle CORS preflight request
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

@@ -1,14 +1,16 @@
 # CURRENT TASK STATE
 
 - **Task Name:** ZEGOCLOUD Calling Integration + Supabase Edge Functions + Android/Web Synchronization
-- **Status:** Fully Implemented, Compiled & Synced
+- **Status:** Fully Deployed to Supabase Live, Tested & Synced to GitHub
 
 ## Accomplishments
-1. **ZEGOCLOUD RTC Calling System**:
+1. **Live Supabase Edge Function (`/functions/v1/zego-token`)**:
+   - Deployed directly to Supabase Project `bjwzqafnspaeuwgnxnyn` (Status: `ACTIVE`, Version 2).
+   - Configured secure server secrets: `ZEGO_APP_ID=1253975777` & `ZEGO_SERVER_SECRET=f818dcba886ae4b8f401a94a3e8878da`.
+   - Verified live HTTP 200 response returning authenticated ZEGOCLOUD RTC access tokens.
+2. **ZEGOCLOUD RTC Calling System**:
    - Integrated `zego-express-engine-webrtc` on the Web client (`src/lib/zegoService.ts` and `src/lib/callManager.ts`).
    - Integrated ZEGOCLOUD token resolution on Android (`ZegoNativeHelper.kt`).
-2. **Supabase Edge Function (`/supabase/functions/zego-token/index.ts`)**:
-   - Developed secure token generation function using AES-CBC encryption, HMAC validation, and room-scoped RTC access tokens.
 3. **Web Calling UI (`WebCallOverlay.tsx`)**:
    - Rendered real-time remote and local streams, ZEGOCLOUD HD indicators, PIP layout, and full media controls.
 4. **Android Calling Architecture (`CallActivity.kt`, `CallManager.kt`, `ZegoNativeHelper.kt`)**:
