@@ -120,9 +120,9 @@ serve(async (req) => {
       );
     }
 
-    // Read ZEGOCLOUD configuration from Supabase Edge Function Secrets
-    const rawAppId = Deno.env.get("ZEGO_APP_ID") || Deno.env.get("VITE_ZEGO_APP_ID") || "123456789";
-    const serverSecret = Deno.env.get("ZEGO_SERVER_SECRET") || Deno.env.get("VITE_ZEGO_SERVER_SECRET") || "0123456789abcdef0123456789abcdef";
+    // Read ZEGOCLOUD configuration from Supabase Edge Function Secrets or defaults
+    const rawAppId = Deno.env.get("ZEGO_APP_ID") || Deno.env.get("VITE_ZEGO_APP_ID") || "1253975777";
+    const serverSecret = Deno.env.get("ZEGO_SERVER_SECRET") || Deno.env.get("VITE_ZEGO_SERVER_SECRET") || "f818dcba886ae4b8f401a94a3e8878da";
     const appId = parseInt(rawAppId, 10);
 
     const token = await generateZegoToken(

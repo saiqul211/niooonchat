@@ -2,16 +2,19 @@
 
 This Supabase Edge Function generates secure, time-limited authentication tokens for **ZEGOCLOUD Real-Time Audio and Video Calling** across both the **Web Application** and **Android Native App**.
 
-## Secrets Required
-In your Supabase project dashboard (`https://supabase.com/dashboard/project/bjwzqafnspaeuwgnxnyn/settings/functions`), add the following secrets:
-
-- `ZEGO_APP_ID`: Your ZEGOCLOUD AppID (numeric integer) from the [ZEGOCLOUD Admin Console](https://console.zegocloud.com/).
-- `ZEGO_SERVER_SECRET`: Your 32-character Server Secret from ZEGOCLOUD Console.
+## App Configuration
+- **AppID**: `1253975777`
+- **ServerSecret**: `f818dcba886ae4b8f401a94a3e8878da`
 
 ## Deployment Command
 To deploy this edge function directly using Supabase CLI:
 ```bash
 supabase functions deploy zego-token --project-ref bjwzqafnspaeuwgnxnyn
+```
+
+You can also set these via Supabase Secrets:
+```bash
+supabase secrets set ZEGO_APP_ID=1253975777 ZEGO_SERVER_SECRET=f818dcba886ae4b8f401a94a3e8878da --project-ref bjwzqafnspaeuwgnxnyn
 ```
 
 ## Endpoint URL

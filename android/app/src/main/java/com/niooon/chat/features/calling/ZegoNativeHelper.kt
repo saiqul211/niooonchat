@@ -65,7 +65,7 @@ object ZegoNativeHelper {
                 if (responseCode in 200..299) {
                     val response = BufferedReader(InputStreamReader(connection.inputStream)).use { it.readText() }
                     val json = JSONObject(response)
-                    val appId = json.optLong("appId", 123456789L)
+                    val appId = json.optLong("appId", 1253975777L)
                     val token = json.optString("token", "")
                     
                     onSuccess(

@@ -39,7 +39,7 @@ class ZegoCallingEngine {
     }
 
     // Fallback if Edge function has not yet been deployed
-    const envAppId = Number((import.meta as any).env?.VITE_ZEGO_APP_ID) || 123456789;
+    const envAppId = Number((import.meta as any).env?.VITE_ZEGO_APP_ID) || 1253975777;
     return {
       success: true,
       appId: envAppId,
