@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { NativeBridgeClient } from './bridge/bridge';
 import { isAndroidApp } from './bridge/runtime';
 import { triggerHaptic } from './native';
+import { ZegoService } from './zegoService';
 
 export type CallType = 'audio' | 'video';
 export type CallStatus = 'idle' | 'outgoing' | 'ringing' | 'connecting' | 'connected' | 'ended' | 'rejected';
@@ -34,11 +35,8 @@ class WebCallService {
   private listeners: Set<CallStateListener> = new Set();
   private timerInterval: any = null;
   private audioContext: AudioContext | null = null;
-  private ringtoneOscillator: any = null;
-  private ringtoneGain: any = null;
   private isRinging: boolean = false;
   private subscription: any = null;
-  private peerConnection: RTCPeerConnection | null = null;
   private currentUserId: string | null = null;
   private currentUserProfile: CallParticipant | null = null;
 
@@ -136,9 +134,42 @@ class WebCallService {
     }
   }
 
+  // --- CONNECT TO ZEGOCLOUD RTC ---
+  private async connectZegoRtc(roomId: string, callType: CallType) {
+    if (!this.currentUserId || !this.currentUserProfile) return;
+
+    try {
+      const { localStream } = await ZegoService.joinCallRoom({
+        userId: this.currentUserId,
+        userName: this.currentUserProfile.fullName || this.currentUserProfile.username,
+        roomId,
+        callType,
+        onRemoteStream: (stream) => {
+          if (this.currentCall) {
+            this.currentCall.remoteStream = stream || undefined;
+            this.notify();
+          }
+        },
+        onConnectionState: (state) => {
+          if (this.currentCall && state === 'CONNECTED') {
+            this.currentCall.status = 'connected';
+            this.notify();
+          }
+        },
+      });
+
+      if (this.currentCall && localStream) {
+        this.currentCall.localStream = localStream;
+        this.notify();
+      }
+    } catch (e) {
+      console.warn('ZEGOCLOUD RTC initialization fallback:', e);
+    }
+  }
+
   // --- CALL INITIATION ---
   async startCall(target: CallParticipant, type: CallType = 'audio') {
-    const callId = `call_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const callId = `room_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     // 1. Android Native Execution
     if (isAndroidApp()) {
@@ -159,16 +190,6 @@ class WebCallService {
     }
 
     // 2. Web Browser Calling Execution
-    let localStream: MediaStream | undefined;
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: type === 'video',
-      });
-    } catch (e) {
-      console.warn('Could not access media devices:', e);
-    }
-
     this.currentCall = {
       callId,
       type,
@@ -179,7 +200,6 @@ class WebCallService {
       isMicMuted: false,
       isVideoOff: false,
       isSpeakerOn: true,
-      localStream,
     };
 
     this.notify();
@@ -210,22 +230,12 @@ class WebCallService {
       return;
     }
 
-    let localStream = this.currentCall.localStream;
-    if (!localStream) {
-      try {
-        localStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: this.currentCall.type === 'video',
-        });
-      } catch (e) {
-        console.warn('Failed to get media devices on accept:', e);
-      }
-    }
-
     this.currentCall.status = 'connected';
-    this.currentCall.localStream = localStream;
     this.startTimer();
     this.notify();
+
+    // Connect to ZEGOCLOUD Realtime Engine
+    await this.connectZegoRtc(this.currentCall.callId, this.currentCall.type);
 
     await this.sendSignal(this.currentCall.participant.id, {
       type: 'accept',
@@ -271,13 +281,12 @@ class WebCallService {
     this.endCallInternal('ended');
   }
 
-  private endCallInternal(status: CallStatus = 'ended') {
+  private async endCallInternal(status: CallStatus = 'ended') {
     this.stopWebRingtone();
     this.stopTimer();
 
-    if (this.currentCall?.localStream) {
-      this.currentCall.localStream.getTracks().forEach(t => t.stop());
-    }
+    // Teardown ZEGOCLOUD Room & Streams
+    await ZegoService.leaveRoom();
 
     if (this.currentCall) {
       this.currentCall.status = status;
@@ -296,11 +305,7 @@ class WebCallService {
     const newState = !this.currentCall.isMicMuted;
     this.currentCall.isMicMuted = newState;
 
-    if (this.currentCall.localStream) {
-      this.currentCall.localStream.getAudioTracks().forEach(track => {
-        track.enabled = !newState;
-      });
-    }
+    ZegoService.muteMicrophone(newState);
 
     this.notify();
     return newState;
@@ -311,18 +316,14 @@ class WebCallService {
     const newState = !this.currentCall.isVideoOff;
     this.currentCall.isVideoOff = newState;
 
-    if (this.currentCall.localStream) {
-      this.currentCall.localStream.getVideoTracks().forEach(track => {
-        track.enabled = !newState;
-      });
-    }
+    ZegoService.muteCamera(newState);
 
     this.notify();
     return newState;
   }
 
   // --- SIGNALING HANDLER ---
-  private handleIncomingSignal(signal: any) {
+  private async handleIncomingSignal(signal: any) {
     if (!signal) return;
 
     switch (signal.type) {
@@ -374,6 +375,9 @@ class WebCallService {
           this.currentCall.status = 'connected';
           this.startTimer();
           this.notify();
+
+          // Connect caller to ZEGOCLOUD Room
+          await this.connectZegoRtc(this.currentCall.callId, this.currentCall.type);
         }
         break;
       }

@@ -86,6 +86,9 @@ object CallManager {
         }
         context.startActivity(intent)
 
+        // Initialize ZEGOCLOUD session
+        ZegoNativeHelper.startNativeZegoSession(context, targetUserId, callId, callType)
+
         return session
     }
 
@@ -136,7 +139,7 @@ object CallManager {
         return session
     }
 
-    fun acceptCall() {
+    fun acceptCall(context: Context? = null) {
         val session = currentSession ?: return
         audioHelper?.stopRingtones()
         notificationHelper?.cancelAllCallNotifications()
@@ -145,6 +148,10 @@ object CallManager {
         audioHelper?.setCallAudioMode(isSpeakerphoneOn)
         if (session.callType == CallType.AUDIO) {
             audioHelper?.enableProximitySensor(true)
+        }
+
+        if (context != null) {
+            ZegoNativeHelper.startNativeZegoSession(context, session.targetUserId, session.callId, session.callType)
         }
 
         startTimer()
