@@ -111,9 +111,12 @@ class CallForegroundService : Service() {
         val notification = buildCallNotification(duration)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             try {
-                var serviceType = ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-                if (callType == CallType.VIDEO.name && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    serviceType = serviceType or ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+                var serviceType = ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    serviceType = serviceType or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+                    if (callType == CallType.VIDEO.name) {
+                        serviceType = serviceType or ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+                    }
                 }
                 startForeground(NOTIFICATION_ID, notification, serviceType)
             } catch (e: Exception) {

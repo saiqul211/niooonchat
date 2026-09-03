@@ -11,6 +11,9 @@ object CallManager {
     var currentSession: CallSession? = null
         private set
 
+    var appContext: Context? = null
+        private set
+
     private var audioHelper: CallAudioHelper? = null
     private var notificationHelper: CallNotificationHelper? = null
 
@@ -30,6 +33,7 @@ object CallManager {
         private set
 
     fun init(context: Context) {
+        appContext = context.applicationContext
         if (audioHelper == null) {
             audioHelper = CallAudioHelper(context.applicationContext)
         }
@@ -154,8 +158,8 @@ object CallManager {
         startTimer()
         notifyStateChange(session)
 
-        val targetCtx = context ?: appContext
-        targetCtx?.let { CallForegroundService.startService(it, session) }
+        val targetCtx: Context? = context ?: appContext
+        targetCtx?.let { ctx: Context -> CallForegroundService.startService(ctx, session) }
 
         // Dispatch accept action to WebView so JavaScript connects Zego RTC and sends Supabase 'accept' signal
         val actionJson = "{\"action\":\"accept\",\"callId\":\"${session.callId}\"}"
@@ -228,7 +232,7 @@ object CallManager {
                     session.durationSeconds++
                     val durationStr = formatDuration(session.durationSeconds)
                     notificationHelper?.showOngoingCallNotification(session, durationStr)
-                    appContext?.let { CallForegroundService.updateDuration(it, durationStr) }
+                    appContext?.let { ctx: Context -> CallForegroundService.updateDuration(ctx, durationStr) }
                     notifyStateChange(session)
                     mainHandler.postDelayed(this, 1000L)
                 }
@@ -252,7 +256,7 @@ object CallManager {
         stopTimer()
         audioHelper?.resetAudio()
         notificationHelper?.cancelAllCallNotifications()
-        appContext?.let { CallForegroundService.stopService(it) }
+        appContext?.let { ctx: Context -> CallForegroundService.stopService(ctx) }
     }
 
     private fun notifyStateChange(session: CallSession) {
