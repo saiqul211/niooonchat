@@ -77,10 +77,11 @@ class WebViewManager(
                 // Ignore
             }
 
-            // Modern Chrome Mobile User-Agent
+            // Modern Chrome Mobile User-Agent without WebView '; wv' flag
             try {
                 val defaultUA = settings.userAgentString ?: ""
-                settings.userAgentString = "$defaultUA NiooonChatApp/1.0.0 (Native Android Kotlin)"
+                val cleanUA = defaultUA.replace("; wv", "")
+                settings.userAgentString = "$cleanUA NiooonChatApp/1.0.0"
             } catch (e: Exception) {
                 // Ignore
             }
@@ -92,10 +93,9 @@ class WebViewManager(
                 // Ignore
             }
 
-            // Safe UI Loading Timeout (Max 3.5s so user is never blocked)
+            // Safe UI Loading Timeout (Max 3.5s so progress bar is cleanly hidden)
             binding.root.postDelayed({
                 if (!activity.isFinishing && !activity.isDestroyed) {
-                    binding.layoutLoading.visibility = View.GONE
                     binding.progressBar.visibility = View.GONE
                 }
             }, 3500)
@@ -119,7 +119,6 @@ class WebViewManager(
                     } else {
                         binding.progressBar.visibility = View.GONE
                         binding.swipeRefreshLayout.isRefreshing = false
-                        binding.layoutLoading.visibility = View.GONE
                     }
                 }
 
@@ -203,6 +202,7 @@ class WebViewManager(
             webView.webViewClient = object : WebViewClient() {
                 override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                     super.onPageStarted(view, url, favicon)
+                    binding.progressBar.progress = 15
                     binding.progressBar.visibility = View.VISIBLE
                     binding.layoutOffline.visibility = View.GONE
                 }
@@ -210,7 +210,6 @@ class WebViewManager(
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
                     binding.progressBar.visibility = View.GONE
-                    binding.layoutLoading.visibility = View.GONE
                     binding.layoutOffline.visibility = View.GONE
                     binding.swipeRefreshLayout.isRefreshing = false
                     onPageFinishedCallback(url)
@@ -233,7 +232,6 @@ class WebViewManager(
                     super.onReceivedError(view, request, error)
                     if (request?.isForMainFrame == true) {
                         binding.progressBar.visibility = View.GONE
-                        binding.layoutLoading.visibility = View.GONE
                         binding.swipeRefreshLayout.isRefreshing = false
                         android.util.Log.e("NiooonWebView", "Main frame error: ${error?.description} (${error?.errorCode})")
                         binding.layoutOffline.visibility = View.VISIBLE
@@ -249,10 +247,9 @@ class WebViewManager(
                 ) {
                     super.onReceivedError(view, errorCode, description, failingUrl)
                     binding.progressBar.visibility = View.GONE
-                    binding.layoutLoading.visibility = View.GONE
                     binding.swipeRefreshLayout.isRefreshing = false
                     android.util.Log.e("NiooonWebView", "Legacy error: $description ($errorCode) for $failingUrl")
-                    if (failingUrl?.contains("niooonchat.vercel.app") == true) {
+                    if (failingUrl == webUrlManager.liveUrl || failingUrl == "${webUrlManager.liveUrl}/") {
                         binding.layoutOffline.visibility = View.VISIBLE
                     }
                 }

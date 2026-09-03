@@ -124,7 +124,6 @@ class MainActivity : AppCompatActivity() {
                 onAppReadyListener = {
                     runOnUiThread {
                         if (::binding.isInitialized && !isFinishing && !isDestroyed) {
-                            binding.layoutLoading.visibility = View.GONE
                             binding.progressBar.visibility = View.GONE
                         }
                     }
@@ -196,7 +195,8 @@ class MainActivity : AppCompatActivity() {
             binding.btnRetry.setOnClickListener {
                 if (::networkMonitor.isInitialized && networkMonitor.isConnected()) {
                     binding.layoutOffline.visibility = View.GONE
-                    binding.layoutLoading.visibility = View.VISIBLE
+                    binding.progressBar.progress = 15
+                    binding.progressBar.visibility = View.VISIBLE
                     val urlToLoad = binding.webView.url ?: webUrlManager.liveUrl
                     loadAppUrl(urlToLoad)
                 } else {
