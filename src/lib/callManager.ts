@@ -215,6 +215,11 @@ class WebCallService {
 
   // --- CALL INITIATION ---
   async startCall(target: CallParticipant, type: CallType = 'audio') {
+    if (!isAndroidApp()) {
+      alert('Voice & Video Calling is exclusively handled in the Niooon Android App. Please open Niooon on your Android device to make calls.');
+      return;
+    }
+
     const callId = `room_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     this.currentCall = {
@@ -230,15 +235,12 @@ class WebCallService {
     };
 
     this.notify();
-    this.startWebRingtone(false);
 
-    // Notify Android native bridge for hardware audio routing & notifications
-    if (isAndroidApp()) {
-      if (type === 'audio') {
-        NativeBridgeClient.startAudioCall(target.id, target.fullName, target.username, target.avatarUrl, callId);
-      } else {
-        NativeBridgeClient.startVideoCall(target.id, target.fullName, target.username, target.avatarUrl, callId);
-      }
+    // Trigger Android Native Material CallActivity & Foreground Service
+    if (type === 'audio') {
+      NativeBridgeClient.startAudioCall(target.id, target.fullName, target.username, target.avatarUrl, callId);
+    } else {
+      NativeBridgeClient.startVideoCall(target.id, target.fullName, target.username, target.avatarUrl, callId);
     }
 
     // Send invitation signal to recipient via Supabase Realtime
@@ -387,6 +389,11 @@ class WebCallService {
 
     switch (signal.type) {
       case 'invite': {
+        // Voice & Video calling UI is exclusive to the native Android App
+        if (!isAndroidApp()) {
+          return;
+        }
+
         // If already in call, reject busy
         if (this.currentCall && this.currentCall.status === 'connected') {
           this.sendSignal(signal.caller.id, {
@@ -397,19 +404,16 @@ class WebCallService {
           return;
         }
 
-        // If Android App: Bridge to Native UI & Ringtone/Vibration
-        if (isAndroidApp()) {
-          NativeBridgeClient.handleIncomingCall(
-            signal.callId,
-            signal.caller.id,
-            signal.caller.fullName,
-            signal.caller.username,
-            signal.caller.avatarUrl,
-            signal.callType
-          );
-        }
+        // Bridge to Native Material CallActivity & System Ringtone/Vibration
+        NativeBridgeClient.handleIncomingCall(
+          signal.callId,
+          signal.caller.id,
+          signal.caller.fullName,
+          signal.caller.username,
+          signal.caller.avatarUrl,
+          signal.callType
+        );
 
-        // Set Web Call State
         this.currentCall = {
           callId: signal.callId,
           type: signal.callType,
@@ -423,8 +427,6 @@ class WebCallService {
         };
 
         this.notify();
-        this.startWebRingtone(true);
-        triggerHaptic('heavy');
         break;
       }
 

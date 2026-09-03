@@ -116,9 +116,8 @@ class CallActivity : AppCompatActivity() {
         if (intent == null) return
 
         if (intent.getBooleanExtra("AUTO_ACCEPT", false) || intent.action == CallNotificationHelper.ACTION_ACCEPT_CALL) {
-            CallManager.acceptCall()
-            bringMainActivityToFront()
-            finish()
+            CallManager.acceptCall(this)
+            updateUI()
         } else if (intent.getBooleanExtra("AUTO_DECLINE", false) || intent.action == CallNotificationHelper.ACTION_DECLINE_CALL) {
             CallManager.rejectCall()
             finish()
@@ -126,13 +125,6 @@ class CallActivity : AppCompatActivity() {
             CallManager.endCall()
             finish()
         }
-    }
-
-    private fun bringMainActivityToFront() {
-        val mainIntent = Intent(this, com.niooon.chat.MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-        }
-        startActivity(mainIntent)
     }
 
     private fun setupListeners() {
@@ -147,9 +139,8 @@ class CallActivity : AppCompatActivity() {
         }
 
         binding.btnAcceptIncoming.setOnClickListener {
-            CallManager.acceptCall()
-            bringMainActivityToFront()
-            finish()
+            CallManager.acceptCall(this)
+            updateUI()
         }
 
         binding.btnMute.setOnClickListener {
@@ -171,6 +162,16 @@ class CallActivity : AppCompatActivity() {
         binding.btnSwitchCamera.setOnClickListener {
             CallManager.switchCamera()
             Toast.makeText(this, "Camera flipped", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onBackPressed() {
+        val session = CallManager.currentSession
+        if (session != null && session.status == CallStatus.CONNECTED) {
+            // Keep call running smoothly in background via CallForegroundService
+            moveTaskToBack(true)
+        } else {
+            super.onBackPressed()
         }
     }
 

@@ -73,6 +73,23 @@ object CallManager {
         }
 
         notifyStateChange(session)
+
+        // Launch Native CallActivity
+        val intent = Intent(context, CallActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("CALL_ID", callId)
+            putExtra("TARGET_USER_ID", targetUserId)
+            putExtra("TARGET_USER_NAME", targetUserName)
+            putExtra("TARGET_USERNAME", targetUsername)
+            putExtra("TARGET_USER_AVATAR", targetUserAvatar)
+            putExtra("CALL_TYPE", callType.name)
+            putExtra("IS_INCOMING", false)
+        }
+        context.startActivity(intent)
+
+        // Start Foreground Service so call runs seamlessly even when app is backgrounded
+        CallForegroundService.startService(context, session)
+
         return session
     }
 
@@ -106,6 +123,20 @@ object CallManager {
         notificationHelper?.showIncomingCallNotification(session)
 
         notifyStateChange(session)
+
+        // Launch Native CallActivity for incoming call screen
+        val intent = Intent(context, CallActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("CALL_ID", callId)
+            putExtra("TARGET_USER_ID", callerId)
+            putExtra("TARGET_USER_NAME", callerName)
+            putExtra("TARGET_USERNAME", callerUsername)
+            putExtra("TARGET_USER_AVATAR", callerAvatar)
+            putExtra("CALL_TYPE", callType.name)
+            putExtra("IS_INCOMING", true)
+        }
+        context.startActivity(intent)
+
         return session
     }
 
@@ -122,6 +153,9 @@ object CallManager {
 
         startTimer()
         notifyStateChange(session)
+
+        val targetCtx = context ?: appContext
+        targetCtx?.let { CallForegroundService.startService(it, session) }
 
         // Dispatch accept action to WebView so JavaScript connects Zego RTC and sends Supabase 'accept' signal
         val actionJson = "{\"action\":\"accept\",\"callId\":\"${session.callId}\"}"
@@ -194,6 +228,7 @@ object CallManager {
                     session.durationSeconds++
                     val durationStr = formatDuration(session.durationSeconds)
                     notificationHelper?.showOngoingCallNotification(session, durationStr)
+                    appContext?.let { CallForegroundService.updateDuration(it, durationStr) }
                     notifyStateChange(session)
                     mainHandler.postDelayed(this, 1000L)
                 }
@@ -217,6 +252,7 @@ object CallManager {
         stopTimer()
         audioHelper?.resetAudio()
         notificationHelper?.cancelAllCallNotifications()
+        appContext?.let { CallForegroundService.stopService(it) }
     }
 
     private fun notifyStateChange(session: CallSession) {

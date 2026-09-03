@@ -12,6 +12,13 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+
+    <!-- Foreground Service Permissions for Smooth Background Calling -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     
     <!-- Camera, Audio & Media Permissions (for attachments & voice/video calls) -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -97,6 +104,12 @@
             android:turnScreenOn="true"
             android:exported="false"
             android:configChanges="orientation|keyboardHidden|screenSize|screenLayout" />
+
+        <!-- Foreground Service for Background Call Execution -->
+        <service
+            android:name=".features.calling.CallForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="phoneCall|microphone|camera" />
 
         <!-- FileProvider for photo uploads and file picker camera capture -->
         <provider

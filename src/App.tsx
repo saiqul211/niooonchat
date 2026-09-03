@@ -11,7 +11,6 @@ import { SignupScreen } from './components/SignupScreen';
 import { ChatScreen } from './components/ChatScreen';
 import { DesktopSidebar } from './components/DesktopSidebar';
 import { DesktopEmptyChat } from './components/DesktopEmptyChat';
-import { WebCallOverlay } from './components/WebCallOverlay';
 import { CallManagerService } from './lib/callManager';
 import { initNativeFeatures, registerBackHandler, triggerHaptic, getNetworkStatus } from './lib/native';
 
@@ -388,9 +387,6 @@ export default function App() {
             Press back again to exit
           </div>
         )}
-
-        {/* Global Web Call Overlay Modal */}
-        <WebCallOverlay />
       </div>
     </div>
   );
