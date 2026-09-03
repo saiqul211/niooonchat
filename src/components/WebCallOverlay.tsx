@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, ShieldCheck, Zap } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Phone, ShieldCheck, Zap, Volume2, VolumeX } from 'lucide-react';
 import { CallManagerService, ActiveCallState } from '../lib/callManager';
 
 export const WebCallOverlay: React.FC = () => {
@@ -19,6 +19,7 @@ export const WebCallOverlay: React.FC = () => {
   useEffect(() => {
     if (callState?.localStream && localVideoRef.current) {
       localVideoRef.current.srcObject = callState.localStream;
+      localVideoRef.current.play().catch(() => {});
     }
   }, [callState?.localStream, callState?.isVideoOff]);
 
@@ -27,9 +28,11 @@ export const WebCallOverlay: React.FC = () => {
     if (callState?.remoteStream) {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = callState.remoteStream;
+        remoteVideoRef.current.play().catch(() => {});
       }
       if (remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = callState.remoteStream;
+        remoteAudioRef.current.play().catch(() => {});
       }
     }
   }, [callState?.remoteStream]);
@@ -216,6 +219,20 @@ export const WebCallOverlay: React.FC = () => {
                 {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
               </button>
             )}
+
+            {/* Toggle Speaker */}
+            <button
+              id="btn-call-speaker"
+              onClick={() => CallManagerService.toggleSpeaker()}
+              className={`w-14 h-14 rounded-full border transition flex items-center justify-center active:scale-95 cursor-pointer ${
+                callState.isSpeakerOn
+                  ? 'bg-blue-500/20 border-blue-500 text-blue-400'
+                  : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
+              }`}
+              title={callState.isSpeakerOn ? 'Speaker on' : 'Earpiece'}
+            >
+              {callState.isSpeakerOn ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
+            </button>
 
             {/* End Call Button */}
             <button

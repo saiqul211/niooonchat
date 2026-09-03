@@ -20,7 +20,7 @@ class BridgeRouter(
     private val onAppReadyListener: () -> Unit
 ) {
 
-    fun handleStartAudioCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?): String {
+    fun handleStartAudioCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?, customCallId: String? = null): String {
         activity.runOnUiThread {
             CallManager.startOutgoingCall(
                 context = activity,
@@ -28,13 +28,14 @@ class BridgeRouter(
                 targetUserName = targetUserName,
                 targetUsername = targetUsername,
                 targetUserAvatar = targetUserAvatar,
-                callType = CallType.AUDIO
+                callType = CallType.AUDIO,
+                customCallId = customCallId
             )
         }
         return BridgeResponse(success = true, capability = BridgeCapabilities.CAPABILITY_CALLING).toJson()
     }
 
-    fun handleStartVideoCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?): String {
+    fun handleStartVideoCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?, customCallId: String? = null): String {
         activity.runOnUiThread {
             CallManager.startOutgoingCall(
                 context = activity,
@@ -42,10 +43,29 @@ class BridgeRouter(
                 targetUserName = targetUserName,
                 targetUsername = targetUsername,
                 targetUserAvatar = targetUserAvatar,
-                callType = CallType.VIDEO
+                callType = CallType.VIDEO,
+                customCallId = customCallId
             )
         }
         return BridgeResponse(success = true, capability = BridgeCapabilities.CAPABILITY_CALLING).toJson()
+    }
+
+    fun handleToggleSpeakerphone(enabled: Boolean): Boolean {
+        activity.runOnUiThread {
+            if (CallManager.isSpeakerphoneOn != enabled) {
+                CallManager.toggleSpeakerphone()
+            }
+        }
+        return true
+    }
+
+    fun handleToggleMute(muted: Boolean): Boolean {
+        activity.runOnUiThread {
+            if (CallManager.isMicMuted != muted) {
+                CallManager.toggleMute()
+            }
+        }
+        return true
     }
 
     fun handleIncomingCall(callId: String, callerId: String, callerName: String, callerUsername: String, callerAvatar: String?, callType: String): String {

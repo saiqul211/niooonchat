@@ -40,21 +40,67 @@ class WebCallService {
   private currentUserId: string | null = null;
   private currentUserProfile: CallParticipant | null = null;
 
+  constructor() {
+    this.setupNativeBridgeListeners();
+  }
+
+  private setupNativeBridgeListeners() {
+    if (typeof window === 'undefined') return;
+
+    window.addEventListener('native:callAction', (event: any) => {
+      const detail = event?.detail;
+      const action = typeof detail === 'string' ? JSON.parse(detail).action : detail?.action;
+      console.log('[BRIDGE_EVENT] native:callAction:', action);
+      if (action === 'accept') {
+        this.acceptCall();
+      } else if (action === 'reject') {
+        this.rejectCall();
+      } else if (action === 'end') {
+        this.endCall();
+      } else if (action === 'toggleMute') {
+        this.toggleMute();
+      } else if (action === 'toggleSpeaker') {
+        this.toggleSpeaker();
+      }
+    });
+
+    window.addEventListener('native:acceptCall', () => {
+      console.log('[BRIDGE_EVENT] native:acceptCall received');
+      this.acceptCall();
+    });
+
+    window.addEventListener('native:rejectCall', () => {
+      console.log('[BRIDGE_EVENT] native:rejectCall received');
+      this.rejectCall();
+    });
+
+    window.addEventListener('native:endCall', () => {
+      console.log('[BRIDGE_EVENT] native:endCall received');
+      this.endCall();
+    });
+  }
+
   init(userId: string, userProfile: CallParticipant) {
     this.currentUserId = userId;
     this.currentUserProfile = userProfile;
 
     if (this.subscription) {
-      this.subscription.unsubscribe();
+      try {
+        supabase.removeChannel(this.subscription);
+      } catch (e) {}
+      this.subscription = null;
     }
 
     // Subscribe to calling signaling channel
     this.subscription = supabase
       .channel(`calling_signaling_${userId}`)
       .on('broadcast', { event: 'call_signal' }, (payload: any) => {
+        console.log('[CALL_SIGNAL_RECEIVED]', payload);
         this.handleIncomingSignal(payload.payload);
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`[CALL_SIGNAL_CHANNEL] Status for ${userId}:`, status);
+      });
   }
 
   subscribe(listener: CallStateListener): () => void {
@@ -171,25 +217,6 @@ class WebCallService {
   async startCall(target: CallParticipant, type: CallType = 'audio') {
     const callId = `room_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-    // 1. Android Native Execution
-    if (isAndroidApp()) {
-      if (type === 'audio') {
-        NativeBridgeClient.startAudioCall(target.id, target.fullName, target.username, target.avatarUrl);
-      } else {
-        NativeBridgeClient.startVideoCall(target.id, target.fullName, target.username, target.avatarUrl);
-      }
-
-      // Signal target via Supabase
-      this.sendSignal(target.id, {
-        type: 'invite',
-        callId,
-        callType: type,
-        caller: this.currentUserProfile,
-      });
-      return;
-    }
-
-    // 2. Web Browser Calling Execution
     this.currentCall = {
       callId,
       type,
@@ -199,13 +226,22 @@ class WebCallService {
       durationSeconds: 0,
       isMicMuted: false,
       isVideoOff: false,
-      isSpeakerOn: true,
+      isSpeakerOn: type === 'video',
     };
 
     this.notify();
     this.startWebRingtone(false);
 
-    // Send invitation signal to recipient
+    // Notify Android native bridge for hardware audio routing & notifications
+    if (isAndroidApp()) {
+      if (type === 'audio') {
+        NativeBridgeClient.startAudioCall(target.id, target.fullName, target.username, target.avatarUrl, callId);
+      } else {
+        NativeBridgeClient.startVideoCall(target.id, target.fullName, target.username, target.avatarUrl, callId);
+      }
+    }
+
+    // Send invitation signal to recipient via Supabase Realtime
     await this.sendSignal(target.id, {
       type: 'invite',
       callId,
@@ -218,45 +254,49 @@ class WebCallService {
   async acceptCall() {
     if (!this.currentCall) return;
 
+    const callId = this.currentCall.callId;
+    const callType = this.currentCall.type;
+    const targetUserId = this.currentCall.participant.id;
+
     this.stopWebRingtone();
     triggerHaptic('medium');
-
-    if (isAndroidApp()) {
-      NativeBridgeClient.acceptCall(this.currentCall.callId);
-      this.sendSignal(this.currentCall.participant.id, {
-        type: 'accept',
-        callId: this.currentCall.callId,
-      });
-      return;
-    }
 
     this.currentCall.status = 'connected';
     this.startTimer();
     this.notify();
 
-    // Connect to ZEGOCLOUD Realtime Engine
-    await this.connectZegoRtc(this.currentCall.callId, this.currentCall.type);
+    // 1. Android Native Bridge sync
+    if (isAndroidApp()) {
+      NativeBridgeClient.acceptCall(callId);
+    }
 
-    await this.sendSignal(this.currentCall.participant.id, {
+    // 2. Broadcast accept signal to caller via Supabase
+    await this.sendSignal(targetUserId, {
       type: 'accept',
-      callId: this.currentCall.callId,
+      callId,
     });
+
+    // 3. Connect to ZEGOCLOUD Realtime Engine
+    await this.connectZegoRtc(callId, callType);
   }
 
   // --- REJECT CALL ---
   async rejectCall() {
     if (!this.currentCall) return;
 
+    const targetUserId = this.currentCall.participant.id;
+    const callId = this.currentCall.callId;
+
     this.stopWebRingtone();
     triggerHaptic('light');
 
     if (isAndroidApp()) {
-      NativeBridgeClient.rejectCall(this.currentCall.callId);
+      NativeBridgeClient.rejectCall(callId);
     }
 
-    await this.sendSignal(this.currentCall.participant.id, {
+    await this.sendSignal(targetUserId, {
       type: 'reject',
-      callId: this.currentCall.callId,
+      callId,
     });
 
     this.endCallInternal('rejected');
@@ -266,16 +306,19 @@ class WebCallService {
   async endCall() {
     if (!this.currentCall) return;
 
+    const targetUserId = this.currentCall.participant.id;
+    const callId = this.currentCall.callId;
+
     this.stopWebRingtone();
     triggerHaptic('light');
 
     if (isAndroidApp()) {
-      NativeBridgeClient.endCall(this.currentCall.callId);
+      NativeBridgeClient.endCall(callId);
     }
 
-    await this.sendSignal(this.currentCall.participant.id, {
+    await this.sendSignal(targetUserId, {
       type: 'end',
-      callId: this.currentCall.callId,
+      callId,
     });
 
     this.endCallInternal('ended');
@@ -306,6 +349,9 @@ class WebCallService {
     this.currentCall.isMicMuted = newState;
 
     ZegoService.muteMicrophone(newState);
+    if (isAndroidApp()) {
+      NativeBridgeClient.toggleMute(newState);
+    }
 
     this.notify();
     return newState;
@@ -317,6 +363,19 @@ class WebCallService {
     this.currentCall.isVideoOff = newState;
 
     ZegoService.muteCamera(newState);
+
+    this.notify();
+    return newState;
+  }
+
+  toggleSpeaker(): boolean {
+    if (!this.currentCall) return false;
+    const newState = !this.currentCall.isSpeakerOn;
+    this.currentCall.isSpeakerOn = newState;
+
+    if (isAndroidApp()) {
+      NativeBridgeClient.toggleSpeakerphone(newState);
+    }
 
     this.notify();
     return newState;
@@ -338,7 +397,7 @@ class WebCallService {
           return;
         }
 
-        // If Android App: Bridge to Native UI
+        // If Android App: Bridge to Native UI & Ringtone/Vibration
         if (isAndroidApp()) {
           NativeBridgeClient.handleIncomingCall(
             signal.callId,
@@ -360,7 +419,7 @@ class WebCallService {
           durationSeconds: 0,
           isMicMuted: false,
           isVideoOff: false,
-          isSpeakerOn: true,
+          isSpeakerOn: signal.callType === 'video',
         };
 
         this.notify();
@@ -370,11 +429,15 @@ class WebCallService {
       }
 
       case 'accept': {
-        if (this.currentCall && this.currentCall.callId === signal.callId) {
+        if (this.currentCall && (this.currentCall.callId === signal.callId || this.currentCall.status === 'outgoing')) {
           this.stopWebRingtone();
           this.currentCall.status = 'connected';
           this.startTimer();
           this.notify();
+
+          if (isAndroidApp()) {
+            NativeBridgeClient.acceptCall(this.currentCall.callId);
+          }
 
           // Connect caller to ZEGOCLOUD Room
           await this.connectZegoRtc(this.currentCall.callId, this.currentCall.type);
@@ -383,14 +446,20 @@ class WebCallService {
       }
 
       case 'reject': {
-        if (this.currentCall && this.currentCall.callId === signal.callId) {
+        if (this.currentCall && (this.currentCall.callId === signal.callId || this.currentCall.status === 'outgoing')) {
+          if (isAndroidApp()) {
+            NativeBridgeClient.rejectCall(this.currentCall.callId);
+          }
           this.endCallInternal('rejected');
         }
         break;
       }
 
       case 'end': {
-        if (this.currentCall && this.currentCall.callId === signal.callId) {
+        if (this.currentCall) {
+          if (isAndroidApp()) {
+            NativeBridgeClient.endCall(this.currentCall.callId);
+          }
           this.endCallInternal('ended');
         }
         break;
@@ -398,18 +467,53 @@ class WebCallService {
     }
   }
 
-  private async sendSignal(targetUserId: string, data: any) {
+  private async sendSignal(targetUserId: string, data: any): Promise<boolean> {
     try {
-      const channel = supabase.channel(`calling_signaling_${targetUserId}`);
-      await channel.subscribe();
-      await channel.send({
-        type: 'broadcast',
-        event: 'call_signal',
-        payload: data,
+      const channelName = `calling_signaling_${targetUserId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      const channel = supabase.channel(channelName);
+
+      return await new Promise<boolean>((resolve) => {
+        let finished = false;
+        const cleanup = () => {
+          if (!finished) {
+            finished = true;
+            try {
+              supabase.removeChannel(channel);
+            } catch (e) {}
+          }
+        };
+
+        const timer = setTimeout(() => {
+          cleanup();
+          resolve(false);
+        }, 5000);
+
+        channel.subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            try {
+              const res = await channel.send({
+                type: 'broadcast',
+                event: 'call_signal',
+                payload: data,
+              });
+              clearTimeout(timer);
+              setTimeout(cleanup, 1000);
+              resolve(res === 'ok');
+            } catch (err) {
+              clearTimeout(timer);
+              cleanup();
+              resolve(false);
+            }
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            clearTimeout(timer);
+            cleanup();
+            resolve(false);
+          }
+        });
       });
-      setTimeout(() => channel.unsubscribe(), 5000);
     } catch (e) {
       console.warn('Signaling send failed:', e);
+      return false;
     }
   }
 

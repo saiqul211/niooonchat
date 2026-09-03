@@ -72,14 +72,21 @@ class ZegoCallingEngine {
     this.onRemoteStreamCallback = onRemoteStream || null;
     this.onConnectionStateCallback = onConnectionState || null;
 
-    // 1. Get Token from Supabase Edge Function
+    // 1. Teardown any previous active instance
+    if (this.zg) {
+      await this.leaveRoom();
+    }
+
+    // 2. Get Token from Supabase Edge Function
     const tokenData = await this.fetchTokenFromSupabase(userId, roomId);
     this.currentAppId = tokenData.appId;
 
-    // 2. Initialize ZegoExpressEngine
-    // Server URLs are dynamically handled or using standard cloud RTC
-    const serverUrl = `wss://webliveroom${this.currentAppId}-api.coolzcloud.com/ws`;
-    this.zg = new ZegoExpressEngine(this.currentAppId, serverUrl);
+    // 3. Initialize ZegoExpressEngine with redundant official endpoints
+    const serverUrls = [
+      `wss://webliveroom${this.currentAppId}-api.coolzcloud.com/ws`,
+      `wss://webliveroom${this.currentAppId}-api.zego.im/ws`,
+    ];
+    this.zg = new ZegoExpressEngine(this.currentAppId, serverUrls);
 
     // 3. Register Event Callbacks
     this.zg.on('roomStateUpdate', (roomID, state, errorCode) => {

@@ -117,6 +117,8 @@ class CallActivity : AppCompatActivity() {
 
         if (intent.getBooleanExtra("AUTO_ACCEPT", false) || intent.action == CallNotificationHelper.ACTION_ACCEPT_CALL) {
             CallManager.acceptCall()
+            bringMainActivityToFront()
+            finish()
         } else if (intent.getBooleanExtra("AUTO_DECLINE", false) || intent.action == CallNotificationHelper.ACTION_DECLINE_CALL) {
             CallManager.rejectCall()
             finish()
@@ -124,6 +126,13 @@ class CallActivity : AppCompatActivity() {
             CallManager.endCall()
             finish()
         }
+    }
+
+    private fun bringMainActivityToFront() {
+        val mainIntent = Intent(this, com.niooon.chat.MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+        }
+        startActivity(mainIntent)
     }
 
     private fun setupListeners() {
@@ -139,6 +148,8 @@ class CallActivity : AppCompatActivity() {
 
         binding.btnAcceptIncoming.setOnClickListener {
             CallManager.acceptCall()
+            bringMainActivityToFront()
+            finish()
         }
 
         binding.btnMute.setOnClickListener {

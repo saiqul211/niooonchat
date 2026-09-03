@@ -44,10 +44,11 @@ object CallManager {
         targetUserName: String,
         targetUsername: String,
         targetUserAvatar: String? = null,
-        callType: CallType = CallType.AUDIO
+        callType: CallType = CallType.AUDIO,
+        customCallId: String? = null
     ): CallSession {
         init(context)
-        val callId = "call_${System.currentTimeMillis()}_${targetUserId.take(6)}"
+        val callId = customCallId ?: "call_${System.currentTimeMillis()}_${targetUserId.take(6)}"
         val session = CallSession(
             callId = callId,
             targetUserId = targetUserId,
@@ -72,23 +73,6 @@ object CallManager {
         }
 
         notifyStateChange(session)
-
-        // Launch Native CallActivity
-        val intent = Intent(context, CallActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("CALL_ID", callId)
-            putExtra("TARGET_USER_ID", targetUserId)
-            putExtra("TARGET_USER_NAME", targetUserName)
-            putExtra("TARGET_USERNAME", targetUsername)
-            putExtra("TARGET_USER_AVATAR", targetUserAvatar)
-            putExtra("CALL_TYPE", callType.name)
-            putExtra("IS_INCOMING", false)
-        }
-        context.startActivity(intent)
-
-        // Initialize ZEGOCLOUD session
-        ZegoNativeHelper.startNativeZegoSession(context, targetUserId, callId, callType)
-
         return session
     }
 
@@ -122,20 +106,6 @@ object CallManager {
         notificationHelper?.showIncomingCallNotification(session)
 
         notifyStateChange(session)
-
-        // Open CallActivity (Incoming Screen)
-        val intent = Intent(context, CallActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra("CALL_ID", callId)
-            putExtra("TARGET_USER_ID", callerId)
-            putExtra("TARGET_USER_NAME", callerName)
-            putExtra("TARGET_USERNAME", callerUsername)
-            putExtra("TARGET_USER_AVATAR", callerAvatar)
-            putExtra("CALL_TYPE", callType.name)
-            putExtra("IS_INCOMING", true)
-        }
-        context.startActivity(intent)
-
         return session
     }
 
@@ -150,27 +120,42 @@ object CallManager {
             audioHelper?.enableProximitySensor(true)
         }
 
-        if (context != null) {
-            ZegoNativeHelper.startNativeZegoSession(context, session.targetUserId, session.callId, session.callType)
-        }
-
         startTimer()
         notifyStateChange(session)
+
+        // Dispatch accept action to WebView so JavaScript connects Zego RTC and sends Supabase 'accept' signal
+        val actionJson = "{\"action\":\"accept\",\"callId\":\"${session.callId}\"}"
+        webEventDispatcher?.invoke("native:callAction", actionJson)
+        webEventDispatcher?.invoke("native:acceptCall", actionJson)
     }
 
     fun rejectCall(reason: String = "declined") {
         val session = currentSession ?: return
+        val callId = session.callId
         session.status = CallStatus.REJECTED
         cleanupCall()
         notifyStateChange(session)
+
+        // Dispatch reject action to WebView so JavaScript broadcasts 'reject' signal via Supabase
+        val actionJson = "{\"action\":\"reject\",\"callId\":\"$callId\"}"
+        webEventDispatcher?.invoke("native:callAction", actionJson)
+        webEventDispatcher?.invoke("native:rejectCall", actionJson)
+
         currentSession = null
     }
 
     fun endCall() {
         val session = currentSession ?: return
+        val callId = session.callId
         session.status = CallStatus.ENDED
         cleanupCall()
         notifyStateChange(session)
+
+        // Dispatch end action to WebView so JavaScript broadcasts 'end' signal via Supabase and leaves Zego room
+        val actionJson = "{\"action\":\"end\",\"callId\":\"$callId\"}"
+        webEventDispatcher?.invoke("native:callAction", actionJson)
+        webEventDispatcher?.invoke("native:endCall", actionJson)
+
         currentSession = null
     }
 

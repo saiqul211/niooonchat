@@ -59,12 +59,32 @@ class NativeBridge(private val router: BridgeRouter) {
 
     @JavascriptInterface
     fun startAudioCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?): String {
-        return router.handleStartAudioCall(targetUserId, targetUserName, targetUsername, targetUserAvatar)
+        return router.handleStartAudioCall(targetUserId, targetUserName, targetUsername, targetUserAvatar, null)
+    }
+
+    @JavascriptInterface
+    fun startAudioCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?, callId: String?): String {
+        return router.handleStartAudioCall(targetUserId, targetUserName, targetUsername, targetUserAvatar, callId)
     }
 
     @JavascriptInterface
     fun startVideoCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?): String {
-        return router.handleStartVideoCall(targetUserId, targetUserName, targetUsername, targetUserAvatar)
+        return router.handleStartVideoCall(targetUserId, targetUserName, targetUsername, targetUserAvatar, null)
+    }
+
+    @JavascriptInterface
+    fun startVideoCall(targetUserId: String, targetUserName: String, targetUsername: String, targetUserAvatar: String?, callId: String?): String {
+        return router.handleStartVideoCall(targetUserId, targetUserName, targetUsername, targetUserAvatar, callId)
+    }
+
+    @JavascriptInterface
+    fun toggleSpeakerphone(enabled: Boolean): Boolean {
+        return router.handleToggleSpeakerphone(enabled)
+    }
+
+    @JavascriptInterface
+    fun toggleMute(muted: Boolean): Boolean {
+        return router.handleToggleMute(muted)
     }
 
     @JavascriptInterface

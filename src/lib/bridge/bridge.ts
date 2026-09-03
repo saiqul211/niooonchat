@@ -165,10 +165,10 @@ export const NativeBridgeClient = {
   /**
    * Start Native Audio Call via Bridge
    */
-  startAudioCall: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string) => {
+  startAudioCall: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string, callId?: string) => {
     if (typeof window !== 'undefined' && window.AndroidBridge?.startAudioCall) {
       try {
-        window.AndroidBridge.startAudioCall(targetUserId, targetUserName, targetUsername, targetUserAvatar);
+        window.AndroidBridge.startAudioCall(targetUserId, targetUserName, targetUsername, targetUserAvatar, callId);
         return true;
       } catch (e) {
         console.error('Error initiating native audio call:', e);
@@ -180,10 +180,10 @@ export const NativeBridgeClient = {
   /**
    * Start Native Video Call via Bridge
    */
-  startVideoCall: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string) => {
+  startVideoCall: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string, callId?: string) => {
     if (typeof window !== 'undefined' && window.AndroidBridge?.startVideoCall) {
       try {
-        window.AndroidBridge.startVideoCall(targetUserId, targetUserName, targetUsername, targetUserAvatar);
+        window.AndroidBridge.startVideoCall(targetUserId, targetUserName, targetUsername, targetUserAvatar, callId);
         return true;
       } catch (e) {
         console.error('Error initiating native video call:', e);
@@ -245,6 +245,34 @@ export const NativeBridgeClient = {
       try {
         window.AndroidBridge.endCall(callId);
         return true;
+      } catch (e) {
+        // Safe catch
+      }
+    }
+    return false;
+  },
+
+  /**
+   * Toggle Native Speakerphone
+   */
+  toggleSpeakerphone: (enabled?: boolean) => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.toggleSpeakerphone) {
+      try {
+        return window.AndroidBridge.toggleSpeakerphone(enabled);
+      } catch (e) {
+        // Safe catch
+      }
+    }
+    return false;
+  },
+
+  /**
+   * Toggle Native Mic Mute
+   */
+  toggleMute: (muted?: boolean) => {
+    if (typeof window !== 'undefined' && window.AndroidBridge?.toggleMute) {
+      try {
+        return window.AndroidBridge.toggleMute(muted);
       } catch (e) {
         // Safe catch
       }

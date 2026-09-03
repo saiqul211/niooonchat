@@ -61,12 +61,14 @@ export interface NativeBridgeGlobal {
   shareText?: (title: string, text: string) => string;
   setStatusBarColor?: (colorHex: string, darkIcons: boolean) => string;
   startDownload?: (url: string, mimeType?: string) => string;
-  startAudioCall?: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string) => string;
-  startVideoCall?: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string) => string;
+  startAudioCall?: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string, callId?: string) => string;
+  startVideoCall?: (targetUserId: string, targetUserName: string, targetUsername: string, targetUserAvatar?: string, callId?: string) => string;
   handleIncomingCall?: (callId: string, callerId: string, callerName: string, callerUsername: string, callerAvatar: string | undefined, callType: string) => string;
   acceptCall?: (callId: string) => string;
   rejectCall?: (callId: string) => string;
   endCall?: (callId: string) => string;
+  toggleSpeakerphone?: (enabled: boolean) => boolean;
+  toggleMute?: (muted: boolean) => boolean;
 }
 
 declare global {

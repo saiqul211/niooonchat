@@ -47,6 +47,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val callPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val audioGranted = permissions[android.Manifest.permission.RECORD_AUDIO] ?: false
+        val cameraGranted = permissions[android.Manifest.permission.CAMERA] ?: false
+        Log.d("NiooonChat", "Permissions: audio=$audioGranted, camera=$cameraGranted")
+    }
+
+    private fun ensureCallPermissions() {
+        try {
+            val permissions = mutableListOf(
+                android.Manifest.permission.RECORD_AUDIO,
+                android.Manifest.permission.CAMERA
+            )
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                permissions.add(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+            val needed = permissions.filter {
+                ContextCompat.checkSelfPermission(this, it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            }
+            if (needed.isNotEmpty()) {
+                callPermissionsLauncher.launch(needed.toTypedArray())
+            }
+        } catch (e: Exception) {
+            Log.w("NiooonChat", "Failed to check call permissions: ${e.message}")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme_NoActionBar)
         super.onCreate(savedInstanceState)
@@ -66,6 +94,9 @@ class MainActivity : AppCompatActivity() {
         setupSwipeRefresh()
         setupOfflineRetry()
         setupBackNavigation()
+        ensureCallPermissions()
+
+        handleCallIntent(intent)
 
         // Load targeted application URL or deep link
         try {
@@ -259,10 +290,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun handleCallIntent(intent: Intent?) {
+        if (intent == null) return
+        try {
+            if (intent.getBooleanExtra("AUTO_ACCEPT", false) || intent.action == com.niooon.chat.features.calling.CallNotificationHelper.ACTION_ACCEPT_CALL) {
+                CallManager.acceptCall()
+            } else if (intent.getBooleanExtra("AUTO_DECLINE", false) || intent.action == com.niooon.chat.features.calling.CallNotificationHelper.ACTION_DECLINE_CALL) {
+                CallManager.rejectCall()
+            } else if (intent.getBooleanExtra("AUTO_END", false) || intent.action == com.niooon.chat.features.calling.CallNotificationHelper.ACTION_END_CALL) {
+                CallManager.endCall()
+            }
+        } catch (e: Exception) {
+            Log.e("NiooonChat", "Error handling call intent: ${e.message}")
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         try {
             setIntent(intent)
+            handleCallIntent(intent)
             intent.dataString?.let { deepLink ->
                 val targetUrl = webUrlManager.sanitizeTargetUrl(deepLink)
                 loadAppUrl(targetUrl)
